@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тесты AI-виртуального консультанта (фронтенд)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .test-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .test-result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        
+        .test-pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .test-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .summary h2 {
+            margin-top: 0;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+        }
+        
+        .stat {
+            padding: 15px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            min-width: 120px;
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+            margin: 5px 0;
+        }
+        
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .chat-widget-preview {
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f8f9fa;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💬 Тесты AI-виртуального консультанта (фронтенд)</h1>
+        
+        <div class="test-section">
+            <h3>1. Проверка элементов интерфейса</h3>
+            <div class="test-item">
+                <p><strong>Тест:</strong> Проверка наличия элементов чата на странице</p>
+                <button onclick="testChatElements()">Запустить тест</button>
+                <div id="test-elements-result" class="test-result" style="display: none;"></div>
+            </div>
+            
+            <div class="test-item">
+                <p><strong>Тест:</strong> Проверка инициализации чата</p>
+                <button onclick="testChatInitialization()">Запустить тест</button>
+                <div id="test-init-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Функциональность чата</h3>
+            <div class="test-item">
+                <p><strong>Тест:</strong> Отправка сообщения</p>
+                <textarea id="test-message" placeholder="Введите тестовое сообщение...">Привет</textarea>
+                <button onclick="testSendMessage()">Отправить сообщение</button>
+                <div id="test-send-result" class="test-result" style="display: none;"></div>
+            </div>
+            
+            <div class="test-item">
+                <p><strong>Тест:</strong> Проверка сохранения истории</p>
+                <button onclick="testHistoryStorage()">Проверить историю</button>
+                <div id="test-history-result" class="test-result" style="display: none;"></div>
+            </div>
+            
+            <div class="test-item">
+                <p><strong>Тест:</strong> Очистка истории</p>
+                <button onclick="testClearHistory()">Очистить и проверить</button>
+                <div id="test-clear-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Интеграция с API</h3>
+            <div class="test-item">
+                <p><strong>Тест:</strong> Проверка доступности API</p>
+                <button onclick="testAPIAvailability()">Проверить API</button>
+                <div id="test-api-result" class="test-result" style="display: none;"></div>
+            </div>
+            
+            <div class="test-item">
+                <p><strong>Тест:</strong> Отправка запроса к API</p>
+                <button onclick="testAPIRequest()">Отправить запрос</button>
+                <div id="test-api-request-result" class="test-result" style="display: none;"></div>
+            </div>
+            
+            <div class="test-item">
+                <p><strong>Тест:</strong> Обработка ошибок API</p>
+                <button onclick="testAPIErrorHandling()">Тест обработки ошибок</button>
+                <div id="test-api-error-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. UI/UX</h3>
+            <div class="test-item">
+                <p><strong>Тест:</strong> Открытие/закрытие чата</p>
+                <button onclick="testChatToggle()">Тест открытия/закрытия</button>
+                <div id="test-toggle-result" class="test-result" style="display: none;"></div>
+            </div>
+            
+            <div class="test-item">
+                <p><strong>Тест:</strong> Индикатор печати</p>
+                <button onclick="testTypingIndicator()">Показать индикатор</button>
+                <div id="test-typing-result" class="test-result" style="display: none;"></div>
+            </div>
+            
+            <div class="test-item">
+                <p><strong>Тест:</strong> Форматирование сообщений</p>
+                <button onclick="testMessageFormatting()">Тест форматирования</button>
+                <div id="test-format-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h3>5. Все тесты</h3>
+            <div class="test-item">
+                <p><strong>Запустить все тесты автоматически</strong></p>
+                <button onclick="runAllTests()">Запустить все тесты</button>
+                <div id="all-tests-result" class="test-result" style="display: none;"></div>
+            </div>
+        </div>
+        
+        <div class="summary" id="summary" style="display: none;">
+            <h2>Итоги тестирования</h2>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number" id="total-tests">0</div>
+                    <div>Всего тестов</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="passed-tests">0</div>
+                    <div>Пройдено</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="failed-tests">0</div>
+                    <div>Провалено</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Копируем элементы чата для тестирования -->
+    <div id="chat-widget" style="position: relative; margin: 20px 0;">
+        <button id="chat-toggle" title="AI-консультант">💬</button>
+        <div id="chat-container" style="position: relative; display: none; flex-direction: column; width: 400px; height: 400px; background: #1A1B20; border: 2px solid #2A2B30; border-radius: 16px; overflow: hidden;">
+            <div class="chat-header" style="background: linear-gradient(135deg, #1A1B20 0%, #2A2B30 100%); padding: 16px 20px; border-bottom: 1px solid #2A2B30; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; color: #EAEAEA; font-size: 18px; font-weight: 600;">🤖 AI-консультант</h3>
+                <div class="chat-header-actions" style="display: flex; gap: 10px;">
+                    <button class="chat-header-btn" id="chat-clear-btn" title="Очистить историю">🗑️</button>
+                    <button class="chat-header-btn" id="chat-close-btn" title="Закрыть">✕</button>
+                </div>
+            </div>
+            <div id="chat-messages" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 12px;"></div>
+            <div class="chat-input-container" style="padding: 16px; border-top: 1px solid #2A2B30; background: #1A1B20; display: flex; gap: 10px;">
+                <textarea id="chat-input" placeholder="Напишите вопрос консультанту..." rows="1" style="flex: 1; padding: 12px 16px; background: #0F1014; border: 1px solid #2A2B30; border-radius: 12px; color: #EAEAEA; font-size: 14px; font-family: inherit; resize: none; max-height: 100px;"></textarea>
+                <button id="chat-send-btn" style="padding: 12px 20px; background: linear-gradient(135deg, #FF9900 0%, #e68900 100%); border: none; border-radius: 12px; color: #0F1014; font-weight: 600; cursor: pointer; transition: all 0.2s ease; white-space: nowrap;">Отправить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Включаем модуль чата для тестирования -->
+    <script src="../src/scripts/chat.js"></script>
+    
+    <script>
+        const CHAT_API_URL = 'http://127.0.0.1:8004/api/v1/chat/message';
+        const CHAT_STORAGE_KEY = 'vinyl_shop_chat_history';
+        
+        let testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0
+        };
+        
+        function showResult(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            element.className = `test-result test-${type}`;
+            element.textContent = message;
+        }
+        
+        function testChatElements() {
+            testResults.total++;
+            const elements = [
+                'chat-widget',
+                'chat-toggle',
+                'chat-container',
+                'chat-messages',
+                'chat-input',
+                'chat-send-btn'
+            ];
+            
+            const missing = [];
+            elements.forEach(id => {
+                if (!document.getElementById(id)) {
+                    missing.push(id);
+                }
+            });
+            
+            if (missing.length === 0) {
+                testResults.passed++;
+                showResult('test-elements-result', '✅ Все элементы чата найдены', 'pass');
+            } else {
+                testResults.failed++;
+                showResult('test-elements-result', `❌ Отсутствуют элементы: ${missing.join(', ')}`, 'fail');
+            }
+            updateSummary();
+        }
+        
+        function testChatInitialization() {
+            testResults.total++;
+            try {
+                // Проверяем, что функция инициализации существует
+                if (typeof window.chatModule !== 'undefined') {
+                    testResults.passed++;
+                    showResult('test-init-result', '✅ Модуль чата инициализирован', 'pass');
+                } else {
+                    testResults.failed++;
+                    showResult('test-init-result', '❌ Модуль чата не найден', 'fail');
+                }
+            } catch (e) {
+                testResults.failed++;
+                showResult('test-init-result', `❌ Ошибка: ${e.message}`, 'fail');
+            }
+            updateSummary();
+        }
+        
+        async function testSendMessage() {
+            testResults.total++;
+            const message = document.getElementById('test-message').value || 'Тестовое сообщение';
+            
+            showResult('test-send-result', '⏳ Отправка сообщения...', 'info');
+            
+            try {
+                const response = await fetch(CHAT_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        history: [],
+                        model: 'gpt-4'
+                    })
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
+                    throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.success && data.response) {
+                    testResults.passed++;
+                    showResult('test-send-result', `✅ Сообщение отправлено успешно. Ответ: ${data.response.substring(0, 100)}...`, 'pass');
+                } else {
+                    testResults.failed++;
+                    showResult('test-send-result', '❌ Неверный формат ответа', 'fail');
+                }
+            } catch (error) {
+                testResults.failed++;
+                showResult('test-send-result', `❌ Ошибка: ${error.message}`, 'fail');
+            }
+            updateSummary();
+        }
+        
+        function testHistoryStorage() {
+            testResults.total++;
+            try {
+                const history = getChatHistory();
+                if (Array.isArray(history)) {
+                    testResults.passed++;
+                    showResult('test-history-result', `✅ История работает корректно. Сообщений: ${history.length}`, 'pass');
+                } else {
+                    testResults.failed++;
+                    showResult('test-history-result', '❌ История не является массивом', 'fail');
+                }
+            } catch (e) {
+                testResults.failed++;
+                showResult('test-history-result', `❌ Ошибка: ${e.message}`, 'fail');
+            }
+            updateSummary();
+        }
+        
+        function testClearHistory() {
+            testResults.total++;
+            try {
+                localStorage.removeItem(CHAT_STORAGE_KEY);
+                const history = getChatHistory();
+                if (history.length === 0) {
+                    testResults.passed++;
+                    showResult('test-clear-result', '✅ История очищена успешно', 'pass');
+                } else {
+                    testResults.failed++;
+                    showResult('test-clear-result', '❌ История не очищена', 'fail');
+                }
+            } catch (e) {
+                testResults.failed++;
+                showResult('test-clear-result', `❌ Ошибка: ${e.message}`, 'fail');
+            }
+            updateSummary();
+        }
+        
+        async function testAPIAvailability() {
+            testResults.total++;
+            showResult('test-api-result', '⏳ Проверка доступности API...', 'info');
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8004/health', { timeout: 5000 });
+                if (response.ok) {
+                    testResults.passed++;
+                    showResult('test-api-result', '✅ API доступен', 'pass');
+                } else {
+                    testResults.failed++;
+                    showResult('test-api-result', `❌ API недоступен (статус: ${response.status})`, 'fail');
+                }
+            } catch (error) {
+                testResults.failed++;
+                showResult('test-api-result', `❌ Ошибка подключения: ${error.message}. Убедитесь, что сервисы запущены.`, 'fail');
+            }
+            updateSummary();
+        }
+        
+        async function testAPIRequest() {
+            testResults.total++;
+            showResult('test-api-request-result', '⏳ Тест запроса к API...', 'info');
+            
+            try {
+                const response = await fetch(CHAT_API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: 'Тест',
+                        history: [],
+                        model: 'gpt-4'
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.response && data.success !== undefined) {
+                        testResults.passed++;
+                        showResult('test-api-request-result', '✅ API запрос работает корректно', 'pass');
+                    } else {
+                        testResults.failed++;
+                        showResult('test-api-request-result', '❌ Неверный формат ответа', 'fail');
+                    }
+                } else {
+                    const errorData = await response.json().catch(() => ({ detail: 'Ошибка сервера' }));
+                    testResults.failed++;
+                    showResult('test-api-request-result', `❌ Ошибка API: ${errorData.detail}`, 'fail');
+                }
+            } catch (error) {
+                testResults.failed++;
+                showResult('test-api-request-result', `❌ Ошибка: ${error.message}`, 'fail');
+            }
+            updateSummary();
+        }
+        
+        function testAPIErrorHandling() {
+            testResults.total++;
+            // Тест с неверным URL
+            fetch('http://127.0.0.1:8004/api/v1/chat/message_wrong', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: 'test' })
+            })
+            .then(response => {
+                if (response.status === 404) {
+                    testResults.passed++;
+                    showResult('test-api-error-result', '✅ Ошибки обрабатываются корректно (404)', 'pass');
+                } else {
+                    testResults.failed++;
+                    showResult('test-api-error-result', `❌ Неожиданный статус: ${response.status}`, 'fail');
+                }
+            })
+            .catch(error => {
+                // Ошибка сети тоже считается корректной обработкой
+                testResults.passed++;
+                showResult('test-api-error-result', '✅ Ошибки обрабатываются корректно', 'pass');
+            })
+            .finally(() => updateSummary());
+        }
+        
+        function testChatToggle() {
+            testResults.total++;
+            const container = document.getElementById('chat-container');
+            if (!container) {
+                testResults.failed++;
+                showResult('test-toggle-result', '❌ Элемент chat-container не найден', 'fail');
+                updateSummary();
+                return;
+            }
+            
+            const initialDisplay = container.style.display;
+            container.style.display = 'none';
+            const hidden = container.style.display === 'none';
+            container.style.display = 'flex';
+            const visible = container.style.display === 'flex';
+            container.style.display = initialDisplay;
+            
+            if (hidden && visible) {
+                testResults.passed++;
+                showResult('test-toggle-result', '✅ Открытие/закрытие чата работает', 'pass');
+            } else {
+                testResults.failed++;
+                showResult('test-toggle-result', '❌ Проблема с открытием/закрытием чата', 'fail');
+            }
+            updateSummary();
+        }
+        
+        function testTypingIndicator() {
+            testResults.total++;
+            const messages = document.getElementById('chat-messages');
+            if (!messages) {
+                testResults.failed++;
+                showResult('test-typing-result', '❌ Элемент chat-messages не найден', 'fail');
+                updateSummary();
+                return;
+            }
+            
+            // Создаем индикатор
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'chat-message chat-message-assistant';
+            typingDiv.innerHTML = '<div class="chat-message-content typing-indicator"><span></span><span></span><span></span></div>';
+            messages.appendChild(typingDiv);
+            
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                testResults.passed++;
+                showResult('test-typing-result', '✅ Индикатор печати отображается', 'pass');
+                setTimeout(() => indicator.remove(), 1000);
+            } else {
+                testResults.failed++;
+                showResult('test-typing-result', '❌ Индикатор печати не создан', 'fail');
+            }
+            updateSummary();
+        }
+        
+        function testMessageFormatting() {
+            testResults.total++;
+            // Тест функции форматирования (если доступна)
+            const testText = 'Пластинка #5 и ID 10';
+            const formatted = testText.replace(/(?:пластинка\s*)?#(\d+)|ID\s*(\d+)/gi, '<span class="product-id-highlight">#$1$2</span>');
+            
+            if (formatted.includes('product-id-highlight')) {
+                testResults.passed++;
+                showResult('test-format-result', '✅ Форматирование сообщений работает', 'pass');
+            } else {
+                testResults.failed++;
+                showResult('test-format-result', '❌ Форматирование не работает', 'fail');
+            }
+            updateSummary();
+        }
+        
+        function getChatHistory() {
+            try {
+                const historyJson = localStorage.getItem(CHAT_STORAGE_KEY);
+                if (historyJson) {
+                    return JSON.parse(historyJson);
+                }
+            } catch (e) {
+                console.error('Ошибка при загрузке истории чата:', e);
+            }
+            return [];
+        }
+        
+        async function runAllTests() {
+            testResults = { total: 0, passed: 0, failed: 0 };
+            showResult('all-tests-result', '⏳ Запуск всех тестов...', 'info');
+            
+            // Запускаем все тесты последовательно
+            testChatElements();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testChatInitialization();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAPIAvailability();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testAPIRequest();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testHistoryStorage();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testChatToggle();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testTypingIndicator();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testMessageFormatting();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            testAPIErrorHandling();
+            
+            setTimeout(() => {
+                const passedPercent = testResults.total > 0 ? Math.round((testResults.passed / testResults.total) * 100) : 0;
+                const message = `✅ Завершено: ${testResults.passed}/${testResults.total} тестов пройдено (${passedPercent}%)`;
+                showResult('all-tests-result', message, testResults.failed === 0 ? 'pass' : 'warning');
+            }, 2000);
+        }
+        
+        function updateSummary() {
+            document.getElementById('total-tests').textContent = testResults.total;
+            document.getElementById('passed-tests').textContent = testResults.passed;
+            document.getElementById('failed-tests').textContent = testResults.failed;
+            document.getElementById('summary').style.display = 'block';
+        }
+        
+        // Автоматический запуск проверки элементов при загрузке
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testChatElements();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+

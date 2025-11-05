@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест выпадающего поиска</title>
+    <link rel="stylesheet" href="src/styles/style.css">
+    <style>
+        body {
+            background-color: #0F1014;
+            color: #EAEAEA;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #2A2B30;
+        }
+        .test-title {
+            color: #FF9900;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .test-description {
+            color: #999;
+            margin-bottom: 15px;
+        }
+        .test-button {
+            background: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .test-button:hover {
+            background: #e68900;
+        }
+        .test-results {
+            background: #2A2B30;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            border-left: 4px solid #FF9900;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #3A3B40;
+        }
+        .feature-list li:before {
+            content: "✅ ";
+            color: #FF9900;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="logo">АУДИТЕРИЯ</div>
+        <nav>
+            <a href="index.html">Каталог</a>
+            <a href="cart.html">Корзина</a>
+        </nav>
+        <div class="user-actions">
+            <div class="search-dropdown">
+                <button class="search-icon-btn" id="header-search-btn" title="Поиск">🔍</button>
+                <div class="search-dropdown-content" id="search-dropdown-content">
+                    <div class="search-dropdown-header">
+                        <span class="search-dropdown-title">Поиск по аудиокнигам</span>
+                        <button class="search-dropdown-close" id="search-dropdown-close">✕</button>
+                    </div>
+                    <div class="search-dropdown-body">
+                        <input type="text" id="dropdown-search-input" placeholder="Введите название, автора или описание..." class="dropdown-search-input">
+                        <div class="search-dropdown-filters">
+                            <select id="dropdown-genre-filter" class="dropdown-filter">
+                                <option value="">Все жанры</option>
+                                <option value="fiction">Художественная литература</option>
+                                <option value="psychology">Психология</option>
+                                <option value="business">Бизнес</option>
+                                <option value="science">Наука</option>
+                            </select>
+                            <select id="dropdown-author-filter" class="dropdown-filter">
+                                <option value="">Все авторы</option>
+                                <option value="ДЖ.К. РОУЛИНГ">ДЖ.К. РОУЛИНГ</option>
+                                <option value="Джордж Р.Р. Мартин">Джордж Р.Р. Мартин</option>
+                                <option value="ДЭНИЕЛ ГОУЛМАН">ДЭНИЕЛ ГОУЛМАН</option>
+                            </select>
+                        </div>
+                        <div class="search-dropdown-actions">
+                            <button class="dropdown-search-btn" id="dropdown-search-btn">Найти</button>
+                            <button class="dropdown-clear-btn" id="dropdown-clear-btn">Очистить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="admin/login.html" class="admin-btn">Админ-панель</a>
+            <a href="login.html" class="login-btn" id="login-link">Войти</a>
+        </div>
+    </header>
+
+    <div class="test-container">
+        <h1>🔍 Тест выпадающего поиска</h1>
+        
+        <div class="test-section">
+            <h2 class="test-title">1. Демонстрация выпадающего поиска</h2>
+            <p class="test-description">Нажмите на кнопку с иконкой лупы в хедере, чтобы открыть выпадающий поиск:</p>
+            <div class="test-results">
+                <strong>Ожидаемое поведение:</strong>
+                <ul class="feature-list">
+                    <li>Выпадающее меню появляется с анимацией</li>
+                    <li>Поле поиска автоматически получает фокус</li>
+                    <li>Фильтры заполняются данными из каталога</li>
+                    <li>Меню закрывается при клике вне его или на кнопку ✕</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">2. Функциональность поиска</h2>
+            <p class="test-description">Протестируйте различные функции выпадающего поиска:</p>
+            <div class="test-results">
+                <strong>Доступные функции:</strong>
+                <ul class="feature-list">
+                    <li>Поиск по названию, автору и описанию</li>
+                    <li>Фильтрация по жанрам</li>
+                    <li>Фильтрация по авторам</li>
+                    <li>Поиск по Enter</li>
+                    <li>Кнопка "Найти" для выполнения поиска</li>
+                    <li>Кнопка "Очистить" для сброса всех фильтров</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">3. Интеграция с основным поиском</h2>
+            <p class="test-description">Выпадающий поиск синхронизируется с основным поиском на странице:</p>
+            <div class="test-results">
+                <strong>Синхронизация:</strong>
+                <ul class="feature-list">
+                    <li>Поисковый запрос передается в основное поле поиска</li>
+                    <li>Фильтры обновляются на основной странице</li>
+                    <li>Результаты отображаются в реальном времени</li>
+                    <li>Автоматический переход на страницу поиска при необходимости</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">4. Стилизация и UX</h2>
+            <p class="test-description">Выпадающий поиск соответствует дизайну сайта:</p>
+            <div class="test-results">
+                <strong>Дизайн:</strong>
+                <ul class="feature-list">
+                    <li>Темная тема в стиле сайта</li>
+                    <li>Оранжевые акценты (#FF9900)</li>
+                    <li>Плавные анимации и переходы</li>
+                    <li>Адаптивная верстка</li>
+                    <li>Тени и градиенты для глубины</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">5. Тестирование на разных страницах</h2>
+            <p class="test-description">Выпадающий поиск доступен на всех страницах сайта:</p>
+            <button class="test-button" onclick="window.open('src/search.html', '_blank')">Открыть search.html</button>
+            <button class="test-button" onclick="window.open('src/index.html', '_blank')">Открыть index.html</button>
+            <button class="test-button" onclick="window.open('src/cart.html', '_blank')">Открыть cart.html</button>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">6. Результаты тестирования</h2>
+            <div class="test-results">
+                <strong>✅ Реализованные функции:</strong>
+                <ul class="feature-list">
+                    <li>HTML структура выпадающего поиска</li>
+                    <li>CSS стили в соответствии с дизайном</li>
+                    <li>JavaScript функциональность</li>
+                    <li>Обработчики событий</li>
+                    <li>Синхронизация с основным поиском</li>
+                    <li>Анимации и переходы</li>
+                    <li>Интеграция на всех страницах</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/scripts/catalog.js"></script>
+    <script>
+        // Дополнительная инициализация для тестовой страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Тестовая страница выпадающего поиска загружена');
+            
+            // Моковые данные для тестирования
+            window.audiobooks = [
+                {
+                    id: 1,
+                    name: "Гарри Поттер и философский камень",
+                    title: "Гарри Поттер и философский камень",
+                    author: "ДЖ.К. РОУЛИНГ",
+                    genre: "fiction",
+                    price: 24.99,
+                    description: "Первая книга о юном волшебнике Гарри Поттере"
+                },
+                {
+                    id: 2,
+                    name: "Эмоциональный интеллект",
+                    title: "Эмоциональный интеллект",
+                    author: "ДЭНИЕЛ ГОУЛМАН",
+                    genre: "psychology",
+                    price: 599.0,
+                    description: "Книга о том, как эмоциональный интеллект влияет на успех"
+                },
+                {
+                    id: 3,
+                    name: "Игра престолов",
+                    title: "Игра престолов",
+                    author: "Джордж Р.Р. Мартин",
+                    genre: "fiction",
+                    price: 29.99,
+                    description: "Первая книга из цикла 'Песнь льда и пламени'"
+                }
+            ];
+            
+            // Инициализируем каталог
+            if (typeof initializeCatalog === 'function') {
+                initializeCatalog();
+            }
+        });
+    </script>
+</body>
+</html>

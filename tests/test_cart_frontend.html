@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тесты функционала корзины</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            background-color: #f8f9fa;
+        }
+        
+        .test-result {
+            margin-top: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .test-pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .test-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .summary {
+            background-color: #e2e3e5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        
+        .summary h2 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        
+        .stat {
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            min-width: 100px;
+        }
+        
+        .stat-pass {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .stat-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .stat-total {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .test-controls {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .mock-cart {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .mock-cart h4 {
+            margin-top: 0;
+            color: #856404;
+        }
+        
+        .cart-display {
+            font-family: monospace;
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Тесты функционала корзины</h1>
+        
+        <div class="test-controls">
+            <button onclick="runAllTests()">Запустить все тесты</button>
+            <button onclick="clearResults()">Очистить результаты</button>
+            <button onclick="clearCart()">Очистить корзину</button>
+        </div>
+        
+        <div class="summary" id="summary" style="display: none;">
+            <h2>📊 Результаты тестирования</h2>
+            <div class="stats" id="stats"></div>
+        </div>
+        
+        <!-- Тесты функций localStorage -->
+        <div class="test-section">
+            <h3>🗄️ Тесты localStorage функций</h3>
+            <div id="localStorage-tests"></div>
+        </div>
+        
+        <!-- Тесты функций корзины -->
+        <div class="test-section">
+            <h3>🛒 Тесты функций корзины</h3>
+            <div id="cart-functions-tests"></div>
+        </div>
+        
+        <!-- Тесты обработчиков событий -->
+        <div class="test-section">
+            <h3>🖱️ Тесты обработчиков событий</h3>
+            <div id="event-handlers-tests"></div>
+        </div>
+        
+        <!-- Тесты UI элементов -->
+        <div class="test-section">
+            <h3>🎨 Тесты UI элементов</h3>
+            <div id="ui-tests"></div>
+        </div>
+        
+        <!-- Тестовые элементы -->
+        <div class="test-section">
+            <h3>🧪 Тестовые элементы</h3>
+            <div class="mock-cart">
+                <h4>Тестовая корзина:</h4>
+                <div class="cart-display" id="cart-display">Корзина пуста</div>
+                <div>
+                    <button class="add-to-cart-btn" data-product-id="test-1">Добавить товар 1</button>
+                    <button class="add-to-cart-btn" data-product-id="test-2">Добавить товар 2</button>
+                    <button class="add-to-cart-btn" data-product-id="test-3">Добавить товар 3</button>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <h4>Счетчик корзины:</h4>
+                <span id="cart-count">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Подключаем основной скрипт -->
+    <script src="src/scripts/script.js"></script>
+    
+    <script>
+        // Глобальные переменные для тестирования
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            total: 0
+        };
+        
+        // Функция для добавления результата теста
+        function addTestResult(sectionId, testName, passed, message = '') {
+            const section = document.getElementById(sectionId);
+            const testItem = document.createElement('div');
+            testItem.className = 'test-item';
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'test-result';
+            resultDiv.className += passed ? ' test-pass' : ' test-fail';
+            resultDiv.textContent = passed ? '✅ ПРОЙДЕН' : '❌ ПРОВАЛЕН';
+            
+            if (message) {
+                resultDiv.textContent += ': ' + message;
+            }
+            
+            testItem.innerHTML = `
+                <strong>${testName}</strong>
+            `;
+            testItem.appendChild(resultDiv);
+            section.appendChild(testItem);
+            
+            // Обновляем статистику
+            testResults.total++;
+            if (passed) {
+                testResults.passed++;
+            } else {
+                testResults.failed++;
+            }
+        }
+        
+        // Функция для очистки результатов
+        function clearResults() {
+            const sections = ['localStorage-tests', 'cart-functions-tests', 'event-handlers-tests', 'ui-tests'];
+            sections.forEach(sectionId => {
+                document.getElementById(sectionId).innerHTML = '';
+            });
+            
+            testResults = { passed: 0, failed: 0, total: 0 };
+            document.getElementById('summary').style.display = 'none';
+        }
+        
+        // Функция для очистки корзины
+        function clearCart() {
+            localStorage.removeItem('cart');
+            updateCartCount();
+            updateCartDisplay();
+        }
+        
+        // Функция для обновления отображения корзины
+        function updateCartDisplay() {
+            const cart = getCart();
+            const display = document.getElementById('cart-display');
+            if (cart.length === 0) {
+                display.textContent = 'Корзина пуста';
+            } else {
+                display.textContent = `Товары в корзине: ${cart.join(', ')}`;
+            }
+        }
+        
+        // Функция для показа статистики
+        function showSummary() {
+            const summary = document.getElementById('summary');
+            const stats = document.getElementById('stats');
+            
+            stats.innerHTML = `
+                <div class="stat stat-pass">✅ Пройдено: ${testResults.passed}</div>
+                <div class="stat stat-fail">❌ Провалено: ${testResults.failed}</div>
+                <div class="stat stat-total">📊 Всего: ${testResults.total}</div>
+            `;
+            
+            summary.style.display = 'block';
+        }
+        
+        // Тесты localStorage функций
+        function testLocalStorageFunctions() {
+            const sectionId = 'localStorage-tests';
+            
+            // Тест 1: getCart() с пустой корзиной
+            try {
+                localStorage.removeItem('cart');
+                const cart = getCart();
+                addTestResult(sectionId, 'getCart() возвращает пустой массив для новой корзины', 
+                    Array.isArray(cart) && cart.length === 0);
+            } catch (error) {
+                addTestResult(sectionId, 'getCart() не выбрасывает ошибку', false, error.message);
+            }
+            
+            // Тест 2: saveCart() и getCart()
+            try {
+                const testCart = ['item1', 'item2', 'item3'];
+                saveCart(testCart);
+                const retrievedCart = getCart();
+                addTestResult(sectionId, 'saveCart() и getCart() работают корректно', 
+                    JSON.stringify(testCart) === JSON.stringify(retrievedCart));
+            } catch (error) {
+                addTestResult(sectionId, 'saveCart() и getCart() не выбрасывают ошибки', false, error.message);
+            }
+            
+            // Тест 3: Корзина сохраняется в localStorage
+            try {
+                const testCart = ['product1', 'product2'];
+                saveCart(testCart);
+                const storedCart = localStorage.getItem('cart');
+                addTestResult(sectionId, 'Корзина сохраняется в localStorage', 
+                    storedCart === JSON.stringify(testCart));
+            } catch (error) {
+                addTestResult(sectionId, 'Корзина сохраняется в localStorage без ошибок', false, error.message);
+            }
+            
+            // Тест 4: Обработка некорректных данных
+            try {
+                localStorage.setItem('cart', 'invalid json');
+                const cart = getCart();
+                addTestResult(sectionId, 'getCart() обрабатывает некорректные данные', 
+                    Array.isArray(cart) && cart.length === 0);
+            } catch (error) {
+                addTestResult(sectionId, 'getCart() обрабатывает некорректные данные без ошибок', false, error.message);
+            }
+        }
+        
+        // Тесты функций корзины
+        function testCartFunctions() {
+            const sectionId = 'cart-functions-tests';
+            
+            // Очищаем корзину перед тестами
+            localStorage.removeItem('cart');
+            
+            // Тест 1: addToCart() добавляет товар
+            try {
+                addToCart('test-product-1');
+                const cart = getCart();
+                addTestResult(sectionId, 'addToCart() добавляет товар в корзину', 
+                    cart.includes('test-product-1') && cart.length === 1);
+            } catch (error) {
+                addTestResult(sectionId, 'addToCart() не выбрасывает ошибку', false, error.message);
+            }
+            
+            // Тест 2: addToCart() не добавляет дубликаты
+            try {
+                addToCart('test-product-1');
+                const cart = getCart();
+                addTestResult(sectionId, 'addToCart() не добавляет дубликаты', 
+                    cart.length === 1 && cart.filter(id => id === 'test-product-1').length === 1);
+            } catch (error) {
+                addTestResult(sectionId, 'addToCart() обрабатывает дубликаты без ошибок', false, error.message);
+            }
+            
+            // Тест 3: updateCartCount() обновляет счетчик
+            try {
+                // Создаем элемент счетчика если его нет
+                if (!document.getElementById('cart-count')) {
+                    const countElement = document.createElement('span');
+                    countElement.id = 'cart-count';
+                    document.body.appendChild(countElement);
+                }
+                
+                addToCart('test-product-2');
+                updateCartCount();
+                const countElement = document.getElementById('cart-count');
+                addTestResult(sectionId, 'updateCartCount() обновляет счетчик', 
+                    countElement && countElement.textContent === '2');
+            } catch (error) {
+                addTestResult(sectionId, 'updateCartCount() работает без ошибок', false, error.message);
+            }
+            
+            // Тест 4: Множественные товары
+            try {
+                addToCart('test-product-3');
+                addToCart('test-product-4');
+                const cart = getCart();
+                addTestResult(sectionId, 'addToCart() добавляет множественные товары', 
+                    cart.length === 4 && cart.includes('test-product-3') && cart.includes('test-product-4'));
+            } catch (error) {
+                addTestResult(sectionId, 'addToCart() обрабатывает множественные товары без ошибок', false, error.message);
+            }
+        }
+        
+        // Тесты обработчиков событий
+        function testEventHandlers() {
+            const sectionId = 'event-handlers-tests';
+            
+            // Очищаем корзину перед тестами
+            localStorage.removeItem('cart');
+            
+            // Тест 1: Клик по кнопке с data-product-id
+            try {
+                const button = document.querySelector('.add-to-cart-btn[data-product-id="test-1"]');
+                if (button) {
+                    button.click();
+                    const cart = getCart();
+                    addTestResult(sectionId, 'Клик по кнопке с data-product-id добавляет товар', 
+                        cart.includes('test-1'));
+                } else {
+                    addTestResult(sectionId, 'Кнопка с data-product-id найдена', false, 'Кнопка не найдена');
+                }
+            } catch (error) {
+                addTestResult(sectionId, 'Клик по кнопке работает без ошибок', false, error.message);
+            }
+            
+            // Тест 2: Обработчик делегирования событий
+            try {
+                const button = document.querySelector('.add-to-cart-btn[data-product-id="test-2"]');
+                if (button) {
+                    button.click();
+                    const cart = getCart();
+                    addTestResult(sectionId, 'Делегирование событий работает', 
+                        cart.includes('test-2') && cart.length === 2);
+                } else {
+                    addTestResult(sectionId, 'Делегирование событий работает', false, 'Кнопка не найдена');
+                }
+            } catch (error) {
+                addTestResult(sectionId, 'Делегирование событий работает без ошибок', false, error.message);
+            }
+            
+            // Тест 3: Проверка обновления счетчика после клика
+            try {
+                const initialCount = document.getElementById('cart-count').textContent;
+                const button = document.querySelector('.add-to-cart-btn[data-product-id="test-3"]');
+                if (button) {
+                    button.click();
+                    const newCount = document.getElementById('cart-count').textContent;
+                    addTestResult(sectionId, 'Счетчик обновляется после клика', 
+                        parseInt(newCount) > parseInt(initialCount));
+                } else {
+                    addTestResult(sectionId, 'Счетчик обновляется после клика', false, 'Кнопка не найдена');
+                }
+            } catch (error) {
+                addTestResult(sectionId, 'Счетчик обновляется после клика без ошибок', false, error.message);
+            }
+        }
+        
+        // Тесты UI элементов
+        function testUIElements() {
+            const sectionId = 'ui-tests';
+            
+            // Тест 1: Наличие элемента счетчика корзины
+            try {
+                const cartCountElement = document.getElementById('cart-count');
+                addTestResult(sectionId, 'Элемент счетчика корзины существует', 
+                    cartCountElement !== null);
+            } catch (error) {
+                addTestResult(sectionId, 'Элемент счетчика корзины существует', false, error.message);
+            }
+            
+            // Тест 2: Наличие кнопок добавления в корзину
+            try {
+                const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+                addTestResult(sectionId, 'Кнопки добавления в корзину найдены', 
+                    addToCartButtons.length > 0);
+            } catch (error) {
+                addTestResult(sectionId, 'Кнопки добавления в корзину найдены', false, error.message);
+            }
+            
+            // Тест 3: Кнопки имеют правильные классы
+            try {
+                const buttons = document.querySelectorAll('.add-to-cart-btn');
+                let allHaveCorrectClass = true;
+                buttons.forEach(button => {
+                    if (!button.classList.contains('add-to-cart-btn')) {
+                        allHaveCorrectClass = false;
+                    }
+                });
+                addTestResult(sectionId, 'Кнопки имеют правильный CSS класс', 
+                    allHaveCorrectClass && buttons.length > 0);
+            } catch (error) {
+                addTestResult(sectionId, 'Кнопки имеют правильный CSS класс', false, error.message);
+            }
+            
+            // Тест 4: Обновление отображения корзины
+            try {
+                updateCartDisplay();
+                const display = document.getElementById('cart-display');
+                addTestResult(sectionId, 'Отображение корзины обновляется', 
+                    display && display.textContent !== '');
+            } catch (error) {
+                addTestResult(sectionId, 'Отображение корзины обновляется без ошибок', false, error.message);
+            }
+        }
+        
+        // Функция для запуска всех тестов
+        function runAllTests() {
+            clearResults();
+            
+            // Запускаем все тесты
+            testLocalStorageFunctions();
+            testCartFunctions();
+            testEventHandlers();
+            testUIElements();
+            
+            // Показываем статистику
+            showSummary();
+            
+            // Обновляем отображение корзины
+            updateCartDisplay();
+        }
+        
+        // Запускаем тесты при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartDisplay();
+        });
+    </script>
+</body>
+</html>

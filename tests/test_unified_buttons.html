@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест объединенных кнопок - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .test-section {
+            background-color: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #28a745;
+            color: white;
+        }
+        .error {
+            background-color: #dc3545;
+            color: white;
+        }
+        .info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        .collection-card {
+            background-color: #2A2B30;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .collection-card img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .collection-card .buy-btn {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+        .collection-card .buy-btn:hover {
+            background-color: #e68900;
+        }
+        pre {
+            background-color: #2A2B30;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛒 Тест объединенных кнопок</h1>
+    
+    <div class="test-section">
+        <h2>1. Тест кнопок покупки</h2>
+        <div class="collection-card">
+            <img src="https://i.imgur.com/k4P4iJv.jpeg" alt="Крестный отец">
+            <p>Ульяна Соболева</p>
+            <button class="buy-btn" data-product-id="1">Купить за 249 руб.</button>
+        </div>
+        <div class="collection-card">
+            <img src="https://i.imgur.com/sIq2y3q.jpeg" alt="Тени прошлого">
+            <p>Линкольн Чайлд</p>
+            <button class="buy-btn" data-product-id="2">Купить за 199 руб.</button>
+        </div>
+        <div id="button-status" class="status info">Нажмите кнопки для тестирования</div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Проверить корзину</h2>
+        <button onclick="checkCart()">Проверить корзину</button>
+        <div id="cart-status" class="status info">Нажмите кнопку для проверки</div>
+        <pre id="cart-data"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Переход к корзине</h2>
+        <button onclick="window.open('src/cart.html', '_blank')">Открыть корзину</button>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Переход к главной странице</h2>
+        <button onclick="window.open('src/index.html', '_blank')">Открыть главную страницу</button>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Очистить корзину</h2>
+        <button onclick="clearCart()">Очистить корзину</button>
+        <div id="clear-status" class="status info">Нажмите кнопку для очистки</div>
+    </div>
+
+    <script src="scripts/script.js"></script>
+    <script src="scripts/cart.js"></script>
+    <script>
+        // Обработчики для кнопок покупки
+        document.addEventListener('DOMContentLoaded', function() {
+            const buyButtons = document.querySelectorAll('.buy-btn');
+            buyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const productId = this.getAttribute('data-product-id');
+                    if (productId) {
+                        addToCart(productId);
+                        showStatus('button-status', 'success', `Товар ${productId} добавлен в корзину!`);
+                    }
+                });
+            });
+        });
+
+        function checkCart() {
+            try {
+                const cartWithQuantity = getCartWithQuantity();
+                const totalItems = Object.values(cartWithQuantity).reduce((sum, q) => sum + q, 0);
+                
+                document.getElementById('cart-data').textContent = JSON.stringify(cartWithQuantity, null, 2);
+                
+                if (totalItems > 0) {
+                    showStatus('cart-status', 'success', `В корзине ${totalItems} товаров`);
+                } else {
+                    showStatus('cart-status', 'info', 'Корзина пуста');
+                }
+            } catch (error) {
+                showStatus('cart-status', 'error', `Ошибка: ${error.message}`);
+            }
+        }
+
+        function clearCart() {
+            try {
+                localStorage.removeItem('cartWithQuantity');
+                showStatus('clear-status', 'info', 'Корзина очищена');
+            } catch (error) {
+                showStatus('clear-status', 'error', `Ошибка: ${error.message}`);
+            }
+        }
+
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        // Автоматическая проверка при загрузке
+        setTimeout(checkCart, 1000);
+    </script>
+</body>
+</html>

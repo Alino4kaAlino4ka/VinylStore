@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Каталог виниловых пластинок - Винил Шоп</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%200%20100%20100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E💿%3C/text%3E%3C/svg%3E">
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <a href="index.html" class="logo">ВИНИЛ ШОП</a>
+        <nav>
+            <a href="cart.html">Корзина (<span id="cart-count">0</span>)</a>
+        </nav>
+        <div class="user-actions">
+            <div class="search-dropdown">
+                <button class="search-icon-btn" id="header-search-btn" title="Поиск">🔍</button>
+                <div class="search-dropdown-content" id="search-dropdown-content">
+                    <div class="search-dropdown-header">
+                        <span class="search-dropdown-title">Поиск по виниловым пластинкам</span>
+                        <button class="search-dropdown-close" id="search-dropdown-close">✕</button>
+                    </div>
+                    <div class="search-dropdown-body">
+                        <input type="text" id="dropdown-search-input" placeholder="Введите название, исполнителя или описание..." class="dropdown-search-input">
+                        <div class="search-dropdown-filters">
+                            <select id="dropdown-genre-filter" class="dropdown-filter">
+                                <option value="">Все жанры</option>
+                            </select>
+                            <select id="dropdown-author-filter" class="dropdown-filter">
+                                <option value="">Все исполнители</option>
+                            </select>
+                        </div>
+                        <div class="search-dropdown-actions">
+                            <button class="dropdown-search-btn" id="dropdown-search-btn">Найти</button>
+                            <button class="dropdown-clear-btn" id="dropdown-clear-btn">Очистить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="admin/login.html" class="admin-btn">Админ-панель</a>
+            <a href="login.html" class="login-btn" id="login-link">Войти</a>
+            <div id="user-profile-block" style="display: none; align-items: center; gap: 15px;">
+                <span class="user-avatar">👤</span>
+                <span class="user-name">Профиль</span>
+                <button class="logout-btn" id="logout-btn">Выйти</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="page-content">
+        <h1>Каталог виниловых пластинок</h1>
+        
+        <!-- Секция рекомендаций -->
+        <section class="recommendations-section" id="recommendations-section" style="display: none;">
+            <div class="recommendations-header">
+                <div class="recommendations-icon">🎯</div>
+                <h2 class="recommendations-title">Ваши персональные рекомендации готовы!</h2>
+                <div class="ai-confidence" id="ai-confidence">Уверенность AI: 0%</div>
+            </div>
+            
+            <div class="recommendations-content">
+                <div class="recommendations-grid" id="recommendations-grid">
+                    <!-- Рекомендации будут добавлены динамически -->
+                </div>
+                
+                <div class="recommendation-reasoning" id="recommendation-reasoning" style="display: none;">
+                    <h4>Обоснование:</h4>
+                    <p id="reasoning-text"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Секция фильтров -->
+        <section class="filters-section">
+            <div class="filters-container">
+                <div class="filter-group">
+                    <label for="genre-filter">Жанр:</label>
+                    <select id="genre-filter" class="filter-select">
+                        <option value="">Все жанры</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="author-filter">Исполнитель:</label>
+                    <select id="author-filter" class="filter-select">
+                        <option value="">Все исполнители</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="sort-filter">Сортировка:</label>
+                    <select id="sort-filter" class="filter-select">
+                        <option value="popular">По популярности</option>
+                        <option value="newest">По дате добавления</option>
+                        <option value="price-low">По цене (возрастание)</option>
+                        <option value="price-high">По цене (убывание)</option>
+                        <option value="rating">По рейтингу</option>
+                    </select>
+                </div>
+                
+                <button id="reset-filters" class="reset-btn">Сбросить фильтры</button>
+                <button class="filter-btn ai-btn" id="get-recommendations">🤖 Получить рекомендации</button>
+            </div>
+        </section>
+
+        <!-- Контейнер для карточек товаров -->
+        <div id="catalog-grid" class="catalog-grid">
+            <!-- Карточки будут загружены через JavaScript -->
+        </div>
+
+        <!-- Блок пагинации -->
+        <div id="pagination" class="pagination">
+            <!-- Пагинация будет создана через JavaScript -->
+        </div>
+    </main>
+
+    <footer class="site-footer-main">
+        <div class="footer-content">
+            <div class="footer-logo">Винил Шоп</div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h3>Жанры</h3>
+                    <ul>
+                        <li><a href="#">Рок</a></li>
+                        <li><a href="#">Поп</a></li>
+                        <li><a href="#">Джаз</a></li>
+                        <li><a href="#">Классическая музыка</a></li>
+                        <li><a href="#">Все жанры</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#">Популярное</a></li>
+                        <li><a href="#">Новинки</a></li>
+                        <li><a href="#">Выбор редакции</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Разделы</h3>
+                    <ul>
+                        <li><a href="#">Как купить</a></li>
+                        <li><a href="#">Часто задаваемые вопросы</a></li>
+                        <li><a href="#">Сотрудничество</a></li>
+                        <li><a href="#">Контакты</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Модальное окно рекомендаций -->
+    <div id="recommendations-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🤖 AI-рекомендации</h2>
+                <span class="close" id="close-recommendations">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="recommendations-form">
+                    <div class="form-group">
+                        <label for="user-preferences">Ваши музыкальные предпочтения:</label>
+                        <textarea id="user-preferences" placeholder="Например: Люблю рок, классический рок, прогрессив-рок..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="current-books">ID пластинок, которые у вас уже есть (через запятую, необязательно):</label>
+                        <input type="text" id="current-books" placeholder="Например: 1, 3, 5 (оставьте пустым, если не знаете ID)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="genre-preferences">Любимые жанры (через запятую):</label>
+                        <input type="text" id="genre-preferences" placeholder="Например: рок, джаз, классика">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="ai-model">AI-модель:</label>
+                        <select id="ai-model">
+                            <option value="gpt-4">GPT-4 Turbo</option>
+                            <option value="claude-3">Claude 3.5 Sonnet</option>
+                            <option value="gemini-pro">Gemini Pro 1.5</option>
+                            <option value="gemini-flash">Gemini Flash</option>
+                            <option value="llama-3">Llama 3 8B</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="max-recommendations">Количество рекомендаций:</label>
+                        <select id="max-recommendations">
+                            <option value="3">3</option>
+                            <option value="5" selected>5</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                    
+                    <button id="generate-recommendations" class="generate-btn">Получить рекомендации</button>
+                </div>
+                
+                <div id="recommendations-result" class="recommendations-result" style="display: none;">
+                    <div class="loading" id="loading-indicator" style="display: none;">
+                        <div class="spinner"></div>
+                        <p>🤖 AI анализирует каталог и генерирует персональные рекомендации...</p>
+                    </div>
+                    <div id="recommendations-content"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="config/api-config.js"></script>
+    <script src="scripts/cart.js"></script>
+    <script src="scripts/catalog.js"></script>
+    <script src="scripts/recommendations.js"></script>
+</body>
+</html>

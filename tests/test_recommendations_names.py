@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Тест рекомендаций с названиями виниловых пластинок
+"""
+
+import requests
+import json
+import sys
+import io
+
+# Настройка кодировки для Windows
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
+def test_recommendations_with_names():
+    """Тестирует сервис рекомендаций с названиями виниловых пластинок"""
+    
+    # URL сервиса рекомендаций
+    rec_url = "http://127.0.0.1:8004/api/v1/recommendations/generate"
+    
+    # Тестовые данные с ID виниловых пластинок
+    test_data = {
+        "user_preferences": "Люблю классический рок и прогрессивный рок",
+        "current_books": [1, 2, 3],  # ID пластинок: Abbey Road, The Dark Side of the Moon, Led Zeppelin IV
+        "genre_preferences": ["классический рок", "прогрессивный рок"],
+        "max_recommendations": 3,
+        "model": "gpt-4"
+    }
+    
+    print("🧪 Тестирование сервиса рекомендаций с названиями виниловых пластинок...")
+    print(f"URL: {rec_url}")
+    print(f"Данные: {json.dumps(test_data, indent=2, ensure_ascii=False)}")
+    
+    try:
+        # Отправляем запрос
+        response = requests.post(
+            rec_url,
+            json=test_data,
+            headers={"Content-Type": "application/json"},
+            timeout=30
+        )
+        
+        print(f"\n📡 Статус ответа: {response.status_code}")
+        
+        if response.status_code == 200:
+            data = response.json()
+            print(f"📦 Ответ: {json.dumps(data, indent=2, ensure_ascii=False)}")
+            
+            if data.get('recommendations'):
+                print(f"✅ Найдено рекомендаций: {len(data['recommendations'])}")
+                for i, rec in enumerate(data['recommendations']):
+                    print(f"   {i+1}. {rec.get('name', 'Неизвестная пластинка')} - {rec.get('artist', 'Неизвестный исполнитель')}")
+            else:
+                print("❌ Рекомендации не найдены в ответе")
+                
+        else:
+            print(f"❌ Ошибка HTTP: {response.status_code}")
+            print(f"Ответ: {response.text}")
+            
+    except requests.exceptions.ConnectionError:
+        print("❌ Сервис рекомендаций недоступен (порт 8004)")
+    except requests.exceptions.Timeout:
+        print("❌ Таймаут запроса")
+    except Exception as e:
+        print(f"❌ Ошибка: {e}")
+
+if __name__ == "__main__":
+    test_recommendations_with_names()
+

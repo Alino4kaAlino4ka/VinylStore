@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест оформления заказа - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .test-section {
+            background-color: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #28a745;
+            color: white;
+        }
+        .error {
+            background-color: #dc3545;
+            color: white;
+        }
+        .info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        pre {
+            background-color: #2A2B30;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            border-bottom: 1px solid #2A2B30;
+        }
+        .cart-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .quantity-btn {
+            background-color: #2A2B30;
+            border: 1px solid #EAEAEA;
+            color: #EAEAEA;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .quantity-btn:hover {
+            background-color: #FF9900;
+            color: #0F1014;
+        }
+        .quantity-display {
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 30px;
+            text-align: center;
+        }
+        .remove-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .remove-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛒 Тест оформления заказа</h1>
+    
+    <div class="test-section">
+        <h2>1. Добавить товары в корзину</h2>
+        <button onclick="addToCart('main-book')">Добавить "Гарри Поттер"</button>
+        <button onclick="addToCart('main-book')">Еще раз "Гарри Поттер"</button>
+        <button onclick="addToCart('1')">Добавить "Крестный отец"</button>
+        <button onclick="addToCart('2')">Добавить "Тени прошлого"</button>
+        <div id="add-status" class="status info">Нажмите кнопки для добавления</div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Корзина</h2>
+        <button onclick="loadCart()">Загрузить корзину</button>
+        <div id="cart-items"></div>
+        <div id="total-price"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Тест создания заказа</h2>
+        <button onclick="testCreateOrder()">Создать заказ</button>
+        <div id="order-status"></div>
+        <pre id="order-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Проверить Orders Service</h2>
+        <button onclick="checkOrdersService()">Проверить сервис</button>
+        <div id="service-status"></div>
+        <pre id="service-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Переход к корзине</h2>
+        <button onclick="window.open('src/cart.html', '_blank')">Открыть корзину</button>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Очистить корзину</h2>
+        <button onclick="clearCart()">Очистить корзину</button>
+        <div id="clear-status"></div>
+    </div>
+
+    <script>
+        // Моковые данные (копируем из cart.js)
+        const MOCK_PRODUCTS = {
+            "main-book": {
+                id: "main-book",
+                title: "Гарри Поттер и Орден Феникса",
+                author: "Дж. К. Роулинг",
+                price: 199.0,
+                image_url: "https://avatars.mds.yandex.net/i?id=aa10b44c023bcbb57b66d1f0dd30607192d137aa-7045468-images-thumbs&n=13"
+            },
+            "1": {
+                id: "1",
+                title: "Крестный отец",
+                author: "Ульяна Соболева",
+                price: 249.0,
+                image_url: "https://i.imgur.com/k4P4iJv.jpeg"
+            },
+            "2": {
+                id: "2",
+                title: "Тени прошлого",
+                author: "Линкольн Чайлд",
+                price: 199.0,
+                image_url: "https://i.imgur.com/sIq2y3q.jpeg"
+            }
+        };
+
+        // Функции для работы с корзиной
+        function getCartWithQuantity() {
+            const cart = localStorage.getItem('cartWithQuantity');
+            return cart ? JSON.parse(cart) : {};
+        }
+
+        function saveCartWithQuantity(cartWithQuantity) {
+            localStorage.setItem('cartWithQuantity', JSON.stringify(cartWithQuantity));
+        }
+
+        function addToCart(productId) {
+            const cartWithQuantity = getCartWithQuantity();
+            cartWithQuantity[productId] = (cartWithQuantity[productId] || 0) + 1;
+            saveCartWithQuantity(cartWithQuantity);
+            showStatus('add-status', 'success', `Товар ${productId} добавлен в корзину!`);
+        }
+
+        function clearCart() {
+            localStorage.removeItem('cartWithQuantity');
+            showStatus('clear-status', 'info', 'Корзина очищена');
+        }
+
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        function changeQuantity(productId, change) {
+            const cartWithQuantity = getCartWithQuantity();
+            const currentQuantity = cartWithQuantity[productId] || 0;
+            const newQuantity = Math.max(0, currentQuantity + change);
+            
+            if (newQuantity === 0) {
+                delete cartWithQuantity[productId];
+            } else {
+                cartWithQuantity[productId] = newQuantity;
+            }
+            
+            saveCartWithQuantity(cartWithQuantity);
+            loadCart();
+        }
+
+        function removeFromCart(productId) {
+            const cartWithQuantity = getCartWithQuantity();
+            delete cartWithQuantity[productId];
+            saveCartWithQuantity(cartWithQuantity);
+            loadCart();
+        }
+
+        function loadCart() {
+            const cartWithQuantity = getCartWithQuantity();
+            const productIds = Object.keys(cartWithQuantity);
+            
+            if (productIds.length === 0) {
+                document.getElementById('cart-items').innerHTML = '<p>Корзина пуста</p>';
+                document.getElementById('total-price').innerHTML = '<h3>Итого: 0 ₽</h3>';
+                return;
+            }
+
+            const items = [];
+            let total = 0;
+            
+            for (const productId of productIds) {
+                if (MOCK_PRODUCTS[productId]) {
+                    const quantity = cartWithQuantity[productId];
+                    const item = {
+                        ...MOCK_PRODUCTS[productId],
+                        quantity: quantity,
+                        total_price: MOCK_PRODUCTS[productId].price * quantity
+                    };
+                    items.push(item);
+                    total += item.total_price;
+                }
+            }
+
+            renderCartItems(items);
+            document.getElementById('total-price').innerHTML = `<h3>Итого: ${total} ₽</h3>`;
+        }
+
+        function renderCartItems(items) {
+            const container = document.getElementById('cart-items');
+            container.innerHTML = items.map(item => `
+                <div class="cart-item" data-product-id="${item.id}">
+                    <img src="${item.image_url}" alt="${item.title}">
+                    <div style="flex-grow: 1;">
+                        <div><strong>${item.title}</strong></div>
+                        <div>${item.author}</div>
+                        <div>${item.price} ₽</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="changeQuantity('${item.id}', -1)">-</button>
+                            <span class="quantity-display">${item.quantity}</span>
+                            <button class="quantity-btn" onclick="changeQuantity('${item.id}', 1)">+</button>
+                        </div>
+                        <div style="font-weight: 600; color: #FF9900;">${item.total_price} ₽</div>
+                        <button class="remove-btn" onclick="removeFromCart('${item.id}')">Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Тест создания заказа
+        async function testCreateOrder() {
+            const cartWithQuantity = getCartWithQuantity();
+            const productIds = Object.keys(cartWithQuantity);
+            
+            if (productIds.length === 0) {
+                showStatus('order-status', 'error', 'Корзина пуста! Добавьте товары.');
+                return;
+            }
+
+            try {
+                showStatus('order-status', 'info', 'Создание заказа...');
+                
+                const response = await fetch('http://localhost:8002/api/v1/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_ids: productIds,
+                        quantities: cartWithQuantity
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('order-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('order-status', 'success', 'Заказ создан успешно!');
+                
+            } catch (error) {
+                document.getElementById('order-result').textContent = error.toString();
+                showStatus('order-status', 'error', `Ошибка: ${error.message}`);
+            }
+        }
+
+        // Проверка Orders Service
+        async function checkOrdersService() {
+            try {
+                showStatus('service-status', 'info', 'Проверка Orders Service...');
+                
+                const response = await fetch('http://localhost:8002/health');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('service-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('service-status', 'success', 'Orders Service работает!');
+                
+            } catch (error) {
+                document.getElementById('service-result').textContent = error.toString();
+                showStatus('service-status', 'error', `Ошибка: ${error.message}`);
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Страница тестирования заказов загружена');
+            setTimeout(loadCart, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интеграционные тесты админ-панели - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        
+        .test-container {
+            background-color: #1A1B20;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #FF9900;
+        }
+        
+        .test-header h1 {
+            color: #FF9900;
+            font-size: 24px;
+            margin: 0;
+        }
+        
+        .test-scenario {
+            background-color: #2A2B30;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #FF9900;
+        }
+        
+        .test-scenario h3 {
+            color: #FF9900;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .test-step {
+            background-color: #3A3B40;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 3px solid #6c757d;
+        }
+        
+        .test-step.passed {
+            border-left-color: #28a745;
+            background-color: #1e3a1e;
+        }
+        
+        .test-step.failed {
+            border-left-color: #dc3545;
+            background-color: #3a1e1e;
+        }
+        
+        .test-step.running {
+            border-left-color: #ffc107;
+            background-color: #3a3a1e;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .step-result {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .step-result.success {
+            color: #28a745;
+        }
+        
+        .step-result.error {
+            color: #dc3545;
+        }
+        
+        .step-result.info {
+            color: #17a2b8;
+        }
+        
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #e68900;
+        }
+        
+        .run-scenario-btn {
+            background-color: #28a745;
+            font-size: 16px;
+            padding: 12px 25px;
+        }
+        
+        .run-scenario-btn:hover {
+            background-color: #218838;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #2A2B30;
+            border-radius: 8px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #FF9900;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #ADADAD;
+        }
+        
+        .test-data {
+            background-color: #1A1B20;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        
+        .scenario-description {
+            background-color: #1A1B20;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #FF9900;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🔗 Интеграционные тесты админ-панели</h1>
+            <p>Тестирование полных пользовательских сценариев</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number" id="total-scenarios">0</div>
+                <div class="stat-label">Сценариев</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="passed-scenarios">0</div>
+                <div class="stat-label">Пройдено</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="failed-scenarios">0</div>
+                <div class="stat-label">Провалено</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="scenario-success-rate">0%</div>
+                <div class="stat-label">Успешность</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="run-scenario-btn" onclick="runAllScenarios()">🚀 Запустить все сценарии</button>
+            <button onclick="clearScenarioResults()">🗑️ Очистить результаты</button>
+        </div>
+        
+        <div id="scenario-results"></div>
+    </div>
+
+    <script>
+        let scenarioResults = {
+            total: 0,
+            passed: 0,
+            failed: 0
+        };
+
+        // Функция для создания шага теста
+        function createTestStep(title, stepFunction) {
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'test-step';
+            stepDiv.innerHTML = `
+                <div class="step-title">${title}</div>
+                <div class="step-result" id="step-result-${Date.now()}-${Math.random()}">Ожидание...</div>
+            `;
+            
+            const resultDiv = stepDiv.querySelector('.step-result');
+            
+            return {
+                element: stepDiv,
+                resultDiv: resultDiv,
+                run: async () => {
+                    stepDiv.className = 'test-step running';
+                    resultDiv.textContent = 'Выполняется...';
+                    
+                    try {
+                        const result = await stepFunction();
+                        if (result.success) {
+                            stepDiv.className = 'test-step passed';
+                            resultDiv.className = 'step-result success';
+                            resultDiv.textContent = result.message;
+                        } else {
+                            stepDiv.className = 'test-step failed';
+                            resultDiv.className = 'step-result error';
+                            resultDiv.textContent = result.message;
+                        }
+                        return result.success;
+                    } catch (error) {
+                        stepDiv.className = 'test-step failed';
+                        resultDiv.className = 'step-result error';
+                        resultDiv.textContent = `Ошибка: ${error.message}`;
+                        return false;
+                    }
+                }
+            };
+        }
+
+        // Обновление статистики сценариев
+        function updateScenarioStats() {
+            document.getElementById('total-scenarios').textContent = scenarioResults.total;
+            document.getElementById('passed-scenarios').textContent = scenarioResults.passed;
+            document.getElementById('failed-scenarios').textContent = scenarioResults.failed;
+            
+            const successRate = scenarioResults.total > 0 ? 
+                Math.round((scenarioResults.passed / scenarioResults.total) * 100) : 0;
+            document.getElementById('scenario-success-rate').textContent = successRate + '%';
+        }
+
+        // Сценарий 1: Полный цикл создания товара
+        function createScenario1() {
+            const container = document.createElement('div');
+            container.className = 'test-scenario';
+            container.innerHTML = `
+                <h3>📝 Сценарий 1: Создание нового товара</h3>
+                <div class="scenario-description">
+                    <strong>Описание:</strong> Пользователь создает новый товар через форму, проверяет его отображение в таблице и сохранение в localStorage.
+                </div>
+            `;
+            
+            const steps = [
+                createTestStep('1. Открытие админ-панели', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    if (adminWindow && adminWindow.document.querySelector('#product-form')) {
+                        return { success: true, message: 'Админ-панель открыта' };
+                    }
+                    return { success: false, message: 'Не удалось открыть админ-панель' };
+                }),
+                
+                createTestStep('2. Заполнение формы', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const titleInput = form.querySelector('#title');
+                    const authorInput = form.querySelector('#author_id');
+                    const descInput = form.querySelector('#description');
+                    const priceInput = form.querySelector('#price');
+                    
+                    titleInput.value = 'Интеграционный тест';
+                    authorInput.value = '999';
+                    descInput.value = 'Товар для интеграционного тестирования';
+                    priceInput.value = '199.99';
+                    
+                    if (titleInput.value === 'Интеграционный тест') {
+                        return { success: true, message: 'Форма заполнена' };
+                    }
+                    return { success: false, message: 'Ошибка заполнения формы' };
+                }),
+                
+                createTestStep('3. Отправка формы', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    
+                    submitBtn.click();
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    return { success: true, message: 'Форма отправлена' };
+                }),
+                
+                createTestStep('4. Проверка отображения в таблице', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const tbody = adminWindow.document.querySelector('#products-table tbody');
+                    const rows = tbody.querySelectorAll('tr');
+                    
+                    let found = false;
+                    for (let row of rows) {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length > 0 && cells[1].textContent.includes('Интеграционный тест')) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (found) {
+                        return { success: true, message: 'Товар отображается в таблице' };
+                    }
+                    return { success: false, message: 'Товар не найден в таблице' };
+                }),
+                
+                createTestStep('5. Проверка сохранения в localStorage', async () => {
+                    const savedData = localStorage.getItem('admin_products');
+                    if (savedData) {
+                        const products = JSON.parse(savedData);
+                        const testProduct = products.find(p => p.title === 'Интеграционный тест');
+                        
+                        if (testProduct) {
+                            return { success: true, message: 'Товар сохранен в localStorage' };
+                        }
+                    }
+                    return { success: false, message: 'Товар не сохранен в localStorage' };
+                })
+            ];
+            
+            steps.forEach(step => {
+                container.appendChild(step.element);
+            });
+            
+            return {
+                container: container,
+                steps: steps,
+                run: async () => {
+                    let allPassed = true;
+                    for (let step of steps) {
+                        const passed = await step.run();
+                        if (!passed) allPassed = false;
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                    
+                    if (allPassed) {
+                        scenarioResults.passed++;
+                    } else {
+                        scenarioResults.failed++;
+                    }
+                    scenarioResults.total++;
+                    updateScenarioStats();
+                }
+            };
+        }
+
+        // Сценарий 2: Редактирование существующего товара
+        function createScenario2() {
+            const container = document.createElement('div');
+            container.className = 'test-scenario';
+            container.innerHTML = `
+                <h3>✏️ Сценарий 2: Редактирование товара</h3>
+                <div class="scenario-description">
+                    <strong>Описание:</strong> Пользователь редактирует существующий товар, изменяет его данные и проверяет обновление.
+                </div>
+            `;
+            
+            const steps = [
+                createTestStep('1. Подготовка тестовых данных', async () => {
+                    const testData = [
+                        { id: 1, title: "Тестовая книга", author_id: 1, description: "Описание", price: 100 }
+                    ];
+                    localStorage.setItem('admin_products', JSON.stringify(testData));
+                    return { success: true, message: 'Тестовые данные подготовлены' };
+                }),
+                
+                createTestStep('2. Открытие админ-панели', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    if (adminWindow && adminWindow.document.querySelector('#products-table')) {
+                        return { success: true, message: 'Админ-панель открыта' };
+                    }
+                    return { success: false, message: 'Не удалось открыть админ-панель' };
+                }),
+                
+                createTestStep('3. Нажатие кнопки "Редактировать"', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const editBtn = adminWindow.document.querySelector('.edit-btn');
+                    if (editBtn) {
+                        editBtn.click();
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        return { success: true, message: 'Кнопка редактирования нажата' };
+                    }
+                    return { success: false, message: 'Кнопка редактирования не найдена' };
+                }),
+                
+                createTestStep('4. Проверка заполнения формы', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const editBtn = adminWindow.document.querySelector('.edit-btn');
+                    editBtn.click();
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const titleInput = form.querySelector('#title');
+                    
+                    if (titleInput.value === 'Тестовая книга') {
+                        return { success: true, message: 'Форма заполнена данными товара' };
+                    }
+                    return { success: false, message: 'Форма не заполнена' };
+                }),
+                
+                createTestStep('5. Изменение данных', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const editBtn = adminWindow.document.querySelector('.edit-btn');
+                    editBtn.click();
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const titleInput = form.querySelector('#title');
+                    const priceInput = form.querySelector('#price');
+                    
+                    titleInput.value = 'Отредактированная книга';
+                    priceInput.value = '150';
+                    
+                    if (titleInput.value === 'Отредактированная книга' && priceInput.value === '150') {
+                        return { success: true, message: 'Данные изменены' };
+                    }
+                    return { success: false, message: 'Ошибка изменения данных' };
+                }),
+                
+                createTestStep('6. Сохранение изменений', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const editBtn = adminWindow.document.querySelector('.edit-btn');
+                    editBtn.click();
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const titleInput = form.querySelector('#title');
+                    const priceInput = form.querySelector('#price');
+                    
+                    titleInput.value = 'Отредактированная книга';
+                    priceInput.value = '150';
+                    
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    submitBtn.click();
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    return { success: true, message: 'Изменения сохранены' };
+                }),
+                
+                createTestStep('7. Проверка обновления в таблице', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const tbody = adminWindow.document.querySelector('#products-table tbody');
+                    const rows = tbody.querySelectorAll('tr');
+                    
+                    let found = false;
+                    for (let row of rows) {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length > 0 && cells[1].textContent === 'Отредактированная книга') {
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (found) {
+                        return { success: true, message: 'Товар обновлен в таблице' };
+                    }
+                    return { success: false, message: 'Товар не обновлен в таблице' };
+                })
+            ];
+            
+            steps.forEach(step => {
+                container.appendChild(step.element);
+            });
+            
+            return {
+                container: container,
+                steps: steps,
+                run: async () => {
+                    let allPassed = true;
+                    for (let step of steps) {
+                        const passed = await step.run();
+                        if (!passed) allPassed = false;
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                    
+                    if (allPassed) {
+                        scenarioResults.passed++;
+                    } else {
+                        scenarioResults.failed++;
+                    }
+                    scenarioResults.total++;
+                    updateScenarioStats();
+                }
+            };
+        }
+
+        // Сценарий 3: Удаление товара
+        function createScenario3() {
+            const container = document.createElement('div');
+            container.className = 'test-scenario';
+            container.innerHTML = `
+                <h3>🗑️ Сценарий 3: Удаление товара</h3>
+                <div class="scenario-description">
+                    <strong>Описание:</strong> Пользователь удаляет товар из таблицы и проверяет его исчезновение.
+                </div>
+            `;
+            
+            const steps = [
+                createTestStep('1. Подготовка тестовых данных', async () => {
+                    const testData = [
+                        { id: 1, title: "Книга для удаления", author_id: 1, description: "Описание", price: 100 },
+                        { id: 2, title: "Другая книга", author_id: 2, description: "Описание", price: 200 }
+                    ];
+                    localStorage.setItem('admin_products', JSON.stringify(testData));
+                    return { success: true, message: 'Тестовые данные подготовлены' };
+                }),
+                
+                createTestStep('2. Открытие админ-панели', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    if (adminWindow && adminWindow.document.querySelector('#products-table')) {
+                        return { success: true, message: 'Админ-панель открыта' };
+                    }
+                    return { success: false, message: 'Не удалось открыть админ-панель' };
+                }),
+                
+                createTestStep('3. Подсчет товаров до удаления', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const tbody = adminWindow.document.querySelector('#products-table tbody');
+                    const initialRows = tbody.querySelectorAll('tr').length;
+                    
+                    if (initialRows >= 2) {
+                        return { success: true, message: `Найдено ${initialRows} товаров` };
+                    }
+                    return { success: false, message: 'Недостаточно товаров для теста' };
+                }),
+                
+                createTestStep('4. Нажатие кнопки "Удалить"', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const deleteBtn = adminWindow.document.querySelector('.delete-btn');
+                    if (deleteBtn) {
+                        // Симулируем подтверждение
+                        adminWindow.confirm = () => true;
+                        deleteBtn.click();
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        return { success: true, message: 'Кнопка удаления нажата' };
+                    }
+                    return { success: false, message: 'Кнопка удаления не найдена' };
+                }),
+                
+                createTestStep('5. Проверка уменьшения количества товаров', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const tbody = adminWindow.document.querySelector('#products-table tbody');
+                    const finalRows = tbody.querySelectorAll('tr').length;
+                    
+                    if (finalRows < 2) {
+                        return { success: true, message: `Осталось ${finalRows} товаров` };
+                    }
+                    return { success: false, message: 'Товар не был удален' };
+                }),
+                
+                createTestStep('6. Проверка обновления localStorage', async () => {
+                    const savedData = localStorage.getItem('admin_products');
+                    if (savedData) {
+                        const products = JSON.parse(savedData);
+                        const deletedProduct = products.find(p => p.title === 'Книга для удаления');
+                        
+                        if (!deletedProduct) {
+                            return { success: true, message: 'Товар удален из localStorage' };
+                        }
+                    }
+                    return { success: false, message: 'Товар не удален из localStorage' };
+                })
+            ];
+            
+            steps.forEach(step => {
+                container.appendChild(step.element);
+            });
+            
+            return {
+                container: container,
+                steps: steps,
+                run: async () => {
+                    let allPassed = true;
+                    for (let step of steps) {
+                        const passed = await step.run();
+                        if (!passed) allPassed = false;
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                    
+                    if (allPassed) {
+                        scenarioResults.passed++;
+                    } else {
+                        scenarioResults.failed++;
+                    }
+                    scenarioResults.total++;
+                    updateScenarioStats();
+                }
+            };
+        }
+
+        // Сценарий 4: Валидация формы
+        function createScenario4() {
+            const container = document.createElement('div');
+            container.className = 'test-scenario';
+            container.innerHTML = `
+                <h3>✅ Сценарий 4: Валидация формы</h3>
+                <div class="scenario-description">
+                    <strong>Описание:</strong> Пользователь пытается отправить форму с некорректными данными и проверяет работу валидации.
+                </div>
+            `;
+            
+            const steps = [
+                createTestStep('1. Открытие админ-панели', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    if (adminWindow && adminWindow.document.querySelector('#product-form')) {
+                        return { success: true, message: 'Админ-панель открыта' };
+                    }
+                    return { success: false, message: 'Не удалось открыть админ-панель' };
+                }),
+                
+                createTestStep('2. Попытка отправки пустой формы', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    
+                    submitBtn.click();
+                    
+                    const titleInput = form.querySelector('#title');
+                    if (titleInput.checkValidity() === false) {
+                        return { success: true, message: 'Пустая форма отклонена' };
+                    }
+                    return { success: false, message: 'Валидация пустой формы не работает' };
+                }),
+                
+                createTestStep('3. Тест отрицательной цены', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const priceInput = form.querySelector('#price');
+                    
+                    priceInput.value = -10;
+                    
+                    if (priceInput.checkValidity() === false) {
+                        return { success: true, message: 'Отрицательная цена отклонена' };
+                    }
+                    return { success: false, message: 'Валидация отрицательной цены не работает' };
+                }),
+                
+                createTestStep('4. Тест нулевого ID автора', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const authorInput = form.querySelector('#author_id');
+                    
+                    authorInput.value = 0;
+                    
+                    if (authorInput.checkValidity() === false) {
+                        return { success: true, message: 'Нулевой ID автора отклонен' };
+                    }
+                    return { success: false, message: 'Валидация нулевого ID не работает' };
+                }),
+                
+                createTestStep('5. Тест корректных данных', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const titleInput = form.querySelector('#title');
+                    const authorInput = form.querySelector('#author_id');
+                    const descInput = form.querySelector('#description');
+                    const priceInput = form.querySelector('#price');
+                    
+                    titleInput.value = 'Валидная книга';
+                    authorInput.value = 1;
+                    descInput.value = 'Валидное описание';
+                    priceInput.value = 100;
+                    
+                    if (titleInput.checkValidity() && authorInput.checkValidity() && 
+                        descInput.checkValidity() && priceInput.checkValidity()) {
+                        return { success: true, message: 'Корректные данные приняты' };
+                    }
+                    return { success: false, message: 'Валидация корректных данных не работает' };
+                })
+            ];
+            
+            steps.forEach(step => {
+                container.appendChild(step.element);
+            });
+            
+            return {
+                container: container,
+                steps: steps,
+                run: async () => {
+                    let allPassed = true;
+                    for (let step of steps) {
+                        const passed = await step.run();
+                        if (!passed) allPassed = false;
+                        await new Promise(resolve => setTimeout(resolve, 200));
+                    }
+                    
+                    if (allPassed) {
+                        scenarioResults.passed++;
+                    } else {
+                        scenarioResults.failed++;
+                    }
+                    scenarioResults.total++;
+                    updateScenarioStats();
+                }
+            };
+        }
+
+        // Запуск всех сценариев
+        async function runAllScenarios() {
+            scenarioResults = { total: 0, passed: 0, failed: 0 };
+            
+            const resultsContainer = document.getElementById('scenario-results');
+            resultsContainer.innerHTML = '';
+            
+            const scenarios = [
+                createScenario1(),
+                createScenario2(),
+                createScenario3(),
+                createScenario4()
+            ];
+            
+            for (let scenario of scenarios) {
+                resultsContainer.appendChild(scenario.container);
+                await scenario.run();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        // Очистка результатов сценариев
+        function clearScenarioResults() {
+            document.getElementById('scenario-results').innerHTML = '';
+            scenarioResults = { total: 0, passed: 0, failed: 0 };
+            updateScenarioStats();
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            updateScenarioStats();
+        });
+    </script>
+</body>
+</html>

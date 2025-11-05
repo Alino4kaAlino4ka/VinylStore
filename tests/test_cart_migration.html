@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест миграции корзины - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .test-section {
+            background-color: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #28a745;
+            color: white;
+        }
+        .error {
+            background-color: #dc3545;
+            color: white;
+        }
+        .info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        pre {
+            background-color: #2A2B30;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔄 Тест миграции данных корзины</h1>
+    
+    <div class="test-section">
+        <h2>1. Создать старые данные корзины</h2>
+        <button onclick="createOldCartData()">Создать старые данные</button>
+        <div id="old-cart-status" class="status info">Нажмите кнопку для создания</div>
+        <pre id="old-cart-data"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Проверить новые данные корзины</h2>
+        <button onclick="checkNewCartData()">Проверить новые данные</button>
+        <div id="new-cart-status" class="status info">Нажмите кнопку для проверки</div>
+        <pre id="new-cart-data"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Запустить миграцию</h2>
+        <button onclick="runMigration()">Запустить миграцию</button>
+        <div id="migration-status" class="status info">Нажмите кнопку для миграции</div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Проверить результат</h2>
+        <button onclick="checkResult()">Проверить результат</button>
+        <div id="result-status" class="status info">Нажмите кнопку для проверки</div>
+        <pre id="result-data"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Очистить все данные</h2>
+        <button onclick="clearAllData()">Очистить все</button>
+        <div id="clear-status" class="status info">Нажмите кнопку для очистки</div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Переход к корзине</h2>
+        <button onclick="window.open('src/cart.html', '_blank')">Открыть корзину</button>
+    </div>
+
+    <script src="scripts/cart.js"></script>
+    <script>
+        function createOldCartData() {
+            // Создаем старые данные корзины
+            const oldCart = ['main-book', '1', 'main-book', '2', '1'];
+            localStorage.setItem('cart', JSON.stringify(oldCart));
+            
+            document.getElementById('old-cart-data').textContent = JSON.stringify(oldCart, null, 2);
+            document.getElementById('old-cart-status').textContent = '✅ Старые данные созданы';
+            document.getElementById('old-cart-status').className = 'status success';
+        }
+
+        function checkNewCartData() {
+            const newCart = localStorage.getItem('cartWithQuantity');
+            const data = newCart ? JSON.parse(newCart) : {};
+            
+            document.getElementById('new-cart-data').textContent = JSON.stringify(data, null, 2);
+            
+            if (Object.keys(data).length === 0) {
+                document.getElementById('new-cart-status').textContent = 'ℹ️ Новые данные пусты';
+                document.getElementById('new-cart-status').className = 'status info';
+            } else {
+                document.getElementById('new-cart-status').textContent = '✅ Новые данные есть';
+                document.getElementById('new-cart-status').className = 'status success';
+            }
+        }
+
+        function runMigration() {
+            try {
+                // Вызываем функцию миграции
+                migrateCartData();
+                document.getElementById('migration-status').textContent = '✅ Миграция выполнена';
+                document.getElementById('migration-status').className = 'status success';
+            } catch (error) {
+                document.getElementById('migration-status').textContent = `❌ Ошибка: ${error.message}`;
+                document.getElementById('migration-status').className = 'status error';
+            }
+        }
+
+        function checkResult() {
+            const oldCart = localStorage.getItem('cart');
+            const newCart = localStorage.getItem('cartWithQuantity');
+            
+            const result = {
+                oldCart: oldCart ? JSON.parse(oldCart) : null,
+                newCart: newCart ? JSON.parse(newCart) : null,
+                migrationSuccess: !oldCart && newCart
+            };
+            
+            document.getElementById('result-data').textContent = JSON.stringify(result, null, 2);
+            
+            if (result.migrationSuccess) {
+                document.getElementById('result-status').textContent = '✅ Миграция успешна';
+                document.getElementById('result-status').className = 'status success';
+            } else {
+                document.getElementById('result-status').textContent = '⚠️ Миграция не завершена';
+                document.getElementById('result-status').className = 'status info';
+            }
+        }
+
+        function clearAllData() {
+            localStorage.removeItem('cart');
+            localStorage.removeItem('cartWithQuantity');
+            
+            document.getElementById('clear-status').textContent = '✅ Все данные очищены';
+            document.getElementById('clear-status').className = 'status success';
+            
+            // Очищаем отображение
+            document.getElementById('old-cart-data').textContent = '';
+            document.getElementById('new-cart-data').textContent = '';
+            document.getElementById('result-data').textContent = '';
+        }
+
+        // Автоматическая проверка при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Страница миграции загружена');
+            checkNewCartData();
+        });
+    </script>
+</body>
+</html>

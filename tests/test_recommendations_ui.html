@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест рекомендаций - Аудитерия</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .recommendation {
+            background: white;
+            margin: 15px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .recommendation h3 {
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+        
+        .recommendation .author {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        
+        .recommendation .reason {
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .match-score {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #c62828;
+        }
+        
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Тест AI-рекомендаций</h1>
+        
+        <form id="recommendations-form">
+            <div class="form-group">
+                <label for="user-preferences">Ваши предпочтения:</label>
+                <textarea id="user-preferences" rows="3" placeholder="Опишите, какие книги вам нравятся...">Люблю фантастику и приключения</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="current-books">ID текущих книг (через запятую):</label>
+                <input type="text" id="current-books" placeholder="1, 2, 3">
+            </div>
+            
+            <div class="form-group">
+                <label for="genre-preferences">Любимые жанры (через запятую):</label>
+                <input type="text" id="genre-preferences" placeholder="фантастика, приключения, детектив">
+            </div>
+            
+            <div class="form-group">
+                <label for="ai-model">AI-модель:</label>
+                <select id="ai-model">
+                    <option value="gpt-4">GPT-4</option>
+                    <option value="gemini-pro">Gemini Pro</option>
+                    <option value="claude-3">Claude 3</option>
+                    <option value="llama-3">Llama 3</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="max-recommendations">Количество рекомендаций:</label>
+                <input type="number" id="max-recommendations" value="5" min="1" max="10">
+            </div>
+            
+            <button type="submit" id="generate-btn">Получить рекомендации</button>
+        </form>
+        
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        document.getElementById('recommendations-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const generateBtn = document.getElementById('generate-btn');
+            const resultDiv = document.getElementById('result');
+            
+            // Показываем индикатор загрузки
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Генерируем...';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = '<div class="loading">🔄 Генерируем персональные рекомендации...</div>';
+            
+            try {
+                // Подготавливаем данные запроса
+                const requestData = {
+                    user_preferences: document.getElementById('user-preferences').value || null,
+                    current_books: document.getElementById('current-books').value 
+                        ? document.getElementById('current-books').value.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id))
+                        : null,
+                    genre_preferences: document.getElementById('genre-preferences').value 
+                        ? document.getElementById('genre-preferences').value.split(',').map(genre => genre.trim())
+                        : null,
+                    max_recommendations: parseInt(document.getElementById('max-recommendations').value),
+                    model: document.getElementById('ai-model').value
+                };
+                
+                console.log('Отправляем запрос:', requestData);
+                
+                // Отправляем запрос к сервису рекомендаций
+                const response = await fetch('http://127.0.0.1:8004/api/v1/recommendations/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                console.log('Ответ сервера:', response.status);
+                
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`HTTP error! status: ${response.status}, details: ${errorData}`);
+                }
+                
+                const data = await response.json();
+                console.log('Данные ответа:', data);
+                
+                // Отображаем результаты
+                displayRecommendations(data);
+                
+            } catch (error) {
+                console.error('Ошибка при получении рекомендаций:', error);
+                
+                // Показываем ошибку
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Ошибка при получении рекомендаций</h4>
+                        <p><strong>Детали:</strong> ${error.message}</p>
+                        <p><strong>Возможные причины:</strong></p>
+                        <ul>
+                            <li>Сервис рекомендаций не запущен (порт 8004)</li>
+                            <li>Сервис каталога не запущен (порт 8000)</li>
+                            <li>Не настроен OPENROUTER_API_KEY</li>
+                            <li>Проблемы с сетью</li>
+                        </ul>
+                    </div>
+                `;
+            } finally {
+                // Восстанавливаем кнопку
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Получить рекомендации';
+            }
+        });
+        
+        function displayRecommendations(data) {
+            const resultDiv = document.getElementById('result');
+            
+            let html = `
+                <div class="success">
+                    <h4>🎯 Ваши персональные рекомендации готовы!</h4>
+                    <p><strong>Уверенность AI:</strong> <span class="match-score">${(data.confidence_score * 100).toFixed(1)}%</span></p>
+                    <p><strong>Обоснование:</strong> ${data.reasoning}</p>
+                </div>
+            `;
+            
+            if (data.recommendations && data.recommendations.length > 0) {
+                html += '<h3 style="color: #333; margin: 20px 0 15px 0;">📚 Рекомендуемые книги:</h3>';
+                
+                data.recommendations.forEach((rec, index) => {
+                    html += `
+                        <div class="recommendation">
+                            <h3>${index + 1}. ${rec.name || 'Неизвестная книга'}</h3>
+                            <p class="author"><strong>Автор:</strong> ${rec.author || 'Неизвестный автор'}</p>
+                            <p class="reason"><strong>Почему рекомендую:</strong> ${rec.reason || 'Подходит под ваши предпочтения'}</p>
+                            ${rec.match_score ? `<p><strong>Совпадение:</strong> <span class="match-score">${(rec.match_score * 100).toFixed(1)}%</span></p>` : ''}
+                        </div>
+                    `;
+                });
+            } else {
+                html += '<p style="color: #666; text-align: center; padding: 20px;">😔 К сожалению, не удалось сгенерировать рекомендации. Попробуйте изменить параметры запроса.</p>';
+            }
+            
+            resultDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

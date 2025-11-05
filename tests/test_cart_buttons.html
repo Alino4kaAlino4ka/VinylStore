@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест кнопок корзины</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .test-section {
+            border: 1px solid #2A2B30;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background-color: #1A1B20;
+        }
+        .test-button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .test-button:hover {
+            background-color: #e68900;
+        }
+        .clear-button {
+            background: none;
+            border: 1px solid #FF9900;
+            color: #FF9900;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .clear-button:hover {
+            background-color: #FF9900;
+            color: #0F1014;
+        }
+        .log {
+            background-color: #2A2B30;
+            border: 1px solid #EAEAEA;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .cart-display {
+            background-color: #2A2B30;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест функционала кнопок корзины</h1>
+    
+    <div class="test-section">
+        <h2>Тестирование кнопок</h2>
+        <button class="test-button" onclick="addTestItems()">Добавить тестовые товары</button>
+        <button class="test-button" onclick="testCheckout()">Тест "Оформить заказ"</button>
+        <button class="clear-button" onclick="testClearCart()">Тест "Очистить корзину"</button>
+        <button class="test-button" onclick="showCart()">Показать корзину</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Лог тестирования</h2>
+        <div id="test-log" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Содержимое корзины</h2>
+        <div id="cart-display" class="cart-display">Корзина пуста</div>
+    </div>
+
+    <script src="src/scripts/cart.js"></script>
+    <script>
+        // Функция для логирования
+        function log(message) {
+            const logElement = document.getElementById('test-log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        // Добавить тестовые товары
+        function addTestItems() {
+            log('=== Добавление тестовых товаров ===');
+            try {
+                addToCartWithQuantity('1');
+                addToCartWithQuantity('8');
+                addToCartWithQuantity('12');
+                addToCartWithQuantity('22');
+                log('Добавлены товары: 1, 8, 12, 22');
+                showCart();
+            } catch (error) {
+                log('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Тест кнопки "Оформить заказ"
+        function testCheckout() {
+            log('=== Тест кнопки "Оформить заказ" ===');
+            try {
+                const cart = getCartWithQuantity();
+                if (Object.keys(cart).length === 0) {
+                    log('Корзина пуста, добавляем товары...');
+                    addTestItems();
+                    setTimeout(() => {
+                        log('Вызываем createOrder()...');
+                        createOrder();
+                    }, 1000);
+                } else {
+                    log('Вызываем createOrder()...');
+                    createOrder();
+                }
+            } catch (error) {
+                log('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Тест кнопки "Очистить корзину"
+        function testClearCart() {
+            log('=== Тест кнопки "Очистить корзину" ===');
+            try {
+                const cart = getCartWithQuantity();
+                if (Object.keys(cart).length === 0) {
+                    log('Корзина уже пуста, добавляем товары...');
+                    addTestItems();
+                    setTimeout(() => {
+                        log('Вызываем clearCart()...');
+                        clearCart();
+                        showCart();
+                    }, 1000);
+                } else {
+                    log('Вызываем clearCart()...');
+                    clearCart();
+                    showCart();
+                }
+            } catch (error) {
+                log('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Показать содержимое корзины
+        function showCart() {
+            const cart = getCartWithQuantity();
+            const cartDisplay = document.getElementById('cart-display');
+            
+            if (Object.keys(cart).length === 0) {
+                cartDisplay.textContent = 'Корзина пуста';
+            } else {
+                let cartText = 'Содержимое корзины:\n';
+                Object.keys(cart).forEach(id => {
+                    cartText += `ID: "${id}", количество: ${cart[id]}\n`;
+                });
+                cartDisplay.textContent = cartText;
+            }
+            
+            log('Корзина обновлена. Количество товаров: ' + Object.keys(cart).length);
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Тестовая страница загружена');
+            showCart();
+        });
+    </script>
+</body>
+</html>
+

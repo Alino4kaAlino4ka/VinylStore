@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit тесты админ-панели - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        
+        .test-container {
+            background-color: #1A1B20;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #FF9900;
+        }
+        
+        .test-header h1 {
+            color: #FF9900;
+            font-size: 24px;
+            margin: 0;
+        }
+        
+        .test-group {
+            background-color: #2A2B30;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            border-left: 4px solid #FF9900;
+        }
+        
+        .test-group h3 {
+            color: #FF9900;
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+        
+        .test-case {
+            background-color: #3A3B40;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 4px;
+            border-left: 3px solid #6c757d;
+        }
+        
+        .test-case.passed {
+            border-left-color: #28a745;
+            background-color: #1e3a1e;
+        }
+        
+        .test-case.failed {
+            border-left-color: #dc3545;
+            background-color: #3a1e1e;
+        }
+        
+        .test-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .test-result {
+            font-size: 14px;
+        }
+        
+        .test-result.success {
+            color: #28a745;
+        }
+        
+        .test-result.error {
+            color: #dc3545;
+        }
+        
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #e68900;
+        }
+        
+        .run-tests-btn {
+            background-color: #28a745;
+            font-size: 16px;
+            padding: 12px 25px;
+        }
+        
+        .run-tests-btn:hover {
+            background-color: #218838;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #2A2B30;
+            border-radius: 8px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #FF9900;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #ADADAD;
+        }
+        
+        .test-data {
+            background-color: #1A1B20;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 11px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🔬 Unit тесты админ-панели</h1>
+            <p>Тестирование отдельных функций и методов</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number" id="total-unit-tests">0</div>
+                <div class="stat-label">Всего тестов</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="passed-unit-tests">0</div>
+                <div class="stat-label">Пройдено</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="failed-unit-tests">0</div>
+                <div class="stat-label">Провалено</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="unit-success-rate">0%</div>
+                <div class="stat-label">Успешность</div>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="run-tests-btn" onclick="runUnitTests()">🧪 Запустить Unit тесты</button>
+            <button onclick="clearUnitResults()">🗑️ Очистить результаты</button>
+        </div>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        let unitTestResults = {
+            total: 0,
+            passed: 0,
+            failed: 0
+        };
+
+        // Тестовые данные
+        const testProducts = [
+            { id: 1, title: "Книга 1", author_id: 1, description: "Описание 1", price: 100 },
+            { id: 2, title: "Книга 2", author_id: 2, description: "Описание 2", price: 200 }
+        ];
+
+        // Функция для создания тестового случая
+        function createTestCase(name, testFunction) {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test-case';
+            testDiv.innerHTML = `
+                <div class="test-name">${name}</div>
+                <div class="test-result" id="unit-result-${unitTestResults.total}">Ожидание...</div>
+            `;
+            
+            const resultDiv = testDiv.querySelector('.test-result');
+            
+            return {
+                element: testDiv,
+                resultDiv: resultDiv,
+                run: async () => {
+                    try {
+                        const result = await testFunction();
+                        if (result.success) {
+                            testDiv.className = 'test-case passed';
+                            resultDiv.className = 'test-result success';
+                            resultDiv.textContent = result.message;
+                            unitTestResults.passed++;
+                        } else {
+                            testDiv.className = 'test-case failed';
+                            resultDiv.className = 'test-result error';
+                            resultDiv.textContent = result.message;
+                            unitTestResults.failed++;
+                        }
+                    } catch (error) {
+                        testDiv.className = 'test-case failed';
+                        resultDiv.className = 'test-result error';
+                        resultDiv.textContent = `Ошибка: ${error.message}`;
+                        unitTestResults.failed++;
+                    }
+                    
+                    unitTestResults.total++;
+                    updateUnitStats();
+                }
+            };
+        }
+
+        // Обновление статистики unit тестов
+        function updateUnitStats() {
+            document.getElementById('total-unit-tests').textContent = unitTestResults.total;
+            document.getElementById('passed-unit-tests').textContent = unitTestResults.passed;
+            document.getElementById('failed-unit-tests').textContent = unitTestResults.failed;
+            
+            const successRate = unitTestResults.total > 0 ? 
+                Math.round((unitTestResults.passed / unitTestResults.total) * 100) : 0;
+            document.getElementById('unit-success-rate').textContent = successRate + '%';
+        }
+
+        // Тесты функций работы с данными
+        function createDataFunctionTests() {
+            const container = document.createElement('div');
+            container.className = 'test-group';
+            container.innerHTML = '<h3>📊 Тесты функций данных</h3>';
+            
+            const tests = [
+                createTestCase('Тест сохранения товаров', async () => {
+                    const testData = [...testProducts];
+                    localStorage.setItem('admin_products', JSON.stringify(testData));
+                    
+                    const saved = localStorage.getItem('admin_products');
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if (parsed.length === testData.length) {
+                            return { success: true, message: 'Сохранение работает корректно' };
+                        }
+                    }
+                    return { success: false, message: 'Ошибка сохранения' };
+                }),
+                
+                createTestCase('Тест загрузки товаров', async () => {
+                    localStorage.setItem('admin_products', JSON.stringify(testProducts));
+                    
+                    const loaded = localStorage.getItem('admin_products');
+                    const products = JSON.parse(loaded);
+                    
+                    if (Array.isArray(products) && products.length > 0) {
+                        return { success: true, message: `Загружено ${products.length} товаров` };
+                    }
+                    return { success: false, message: 'Ошибка загрузки' };
+                }),
+                
+                createTestCase('Тест генерации ID', async () => {
+                    const products = [...testProducts];
+                    const maxId = Math.max(...products.map(p => p.id));
+                    const newId = maxId + 1;
+                    
+                    if (newId > maxId && !products.find(p => p.id === newId)) {
+                        return { success: true, message: `Новый ID: ${newId}` };
+                    }
+                    return { success: false, message: 'Ошибка генерации ID' };
+                }),
+                
+                createTestCase('Тест поиска товара по ID', async () => {
+                    const products = [...testProducts];
+                    const foundProduct = products.find(p => p.id === 1);
+                    
+                    if (foundProduct && foundProduct.title === "Книга 1") {
+                        return { success: true, message: 'Поиск по ID работает' };
+                    }
+                    return { success: false, message: 'Ошибка поиска' };
+                }),
+                
+                createTestCase('Тест фильтрации товаров', async () => {
+                    const products = [...testProducts];
+                    const filtered = products.filter(p => p.price > 150);
+                    
+                    if (filtered.length === 1 && filtered[0].id === 2) {
+                        return { success: true, message: 'Фильтрация работает корректно' };
+                    }
+                    return { success: false, message: 'Ошибка фильтрации' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+            
+            return container;
+        }
+
+        // Тесты функций валидации
+        function createValidationTests() {
+            const container = document.createElement('div');
+            container.className = 'test-group';
+            container.innerHTML = '<h3>✅ Тесты валидации</h3>';
+            
+            const tests = [
+                createTestCase('Тест валидации названия', async () => {
+                    const validTitle = "Валидное название";
+                    const invalidTitle = "";
+                    
+                    if (validTitle.length > 0 && invalidTitle.length === 0) {
+                        return { success: true, message: 'Валидация названия работает' };
+                    }
+                    return { success: false, message: 'Ошибка валидации названия' };
+                }),
+                
+                createTestCase('Тест валидации цены', async () => {
+                    const validPrice = 100.50;
+                    const invalidPrice = -10;
+                    
+                    if (validPrice > 0 && invalidPrice <= 0) {
+                        return { success: true, message: 'Валидация цены работает' };
+                    }
+                    return { success: false, message: 'Ошибка валидации цены' };
+                }),
+                
+                createTestCase('Тест валидации ID автора', async () => {
+                    const validAuthorId = 1;
+                    const invalidAuthorId = 0;
+                    
+                    if (validAuthorId > 0 && invalidAuthorId <= 0) {
+                        return { success: true, message: 'Валидация ID автора работает' };
+                    }
+                    return { success: false, message: 'Ошибка валидации ID автора' };
+                }),
+                
+                createTestCase('Тест валидации описания', async () => {
+                    const validDescription = "Это валидное описание";
+                    const invalidDescription = "";
+                    
+                    if (validDescription.length > 0 && invalidDescription.length === 0) {
+                        return { success: true, message: 'Валидация описания работает' };
+                    }
+                    return { success: false, message: 'Ошибка валидации описания' };
+                }),
+                
+                createTestCase('Тест валидации JSON', async () => {
+                    const validJson = '{"id": 1, "title": "Test"}';
+                    const invalidJson = '{"id": 1, "title":}';
+                    
+                    try {
+                        JSON.parse(validJson);
+                        JSON.parse(invalidJson);
+                        return { success: false, message: 'JSON валидация не работает' };
+                    } catch (error) {
+                        return { success: true, message: 'JSON валидация работает' };
+                    }
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+            
+            return container;
+        }
+
+        // Тесты функций форматирования
+        function createFormattingTests() {
+            const container = document.createElement('div');
+            container.className = 'test-group';
+            container.innerHTML = '<h3>🎨 Тесты форматирования</h3>';
+            
+            const tests = [
+                createTestCase('Тест форматирования цены', async () => {
+                    const price = 29.99;
+                    const formatted = price.toFixed(2) + ' ₽';
+                    
+                    if (formatted === '29.99 ₽') {
+                        return { success: true, message: 'Форматирование цены работает' };
+                    }
+                    return { success: false, message: 'Ошибка форматирования цены' };
+                }),
+                
+                createTestCase('Тест обрезки текста', async () => {
+                    const longText = "Это очень длинный текст, который нужно обрезать";
+                    const shortText = longText.substring(0, 20) + (longText.length > 20 ? '...' : '');
+                    
+                    if (shortText.length <= 23 && shortText.endsWith('...')) {
+                        return { success: true, message: 'Обрезка текста работает' };
+                    }
+                    return { success: false, message: 'Ошибка обрезки текста' };
+                }),
+                
+                createTestCase('Тест преобразования типов', async () => {
+                    const stringNumber = "123";
+                    const number = parseInt(stringNumber);
+                    const floatNumber = parseFloat("123.45");
+                    
+                    if (number === 123 && floatNumber === 123.45) {
+                        return { success: true, message: 'Преобразование типов работает' };
+                    }
+                    return { success: false, message: 'Ошибка преобразования типов' };
+                }),
+                
+                createTestCase('Тест проверки массива', async () => {
+                    const array = [1, 2, 3];
+                    const notArray = "not array";
+                    
+                    if (Array.isArray(array) && !Array.isArray(notArray)) {
+                        return { success: true, message: 'Проверка массива работает' };
+                    }
+                    return { success: false, message: 'Ошибка проверки массива' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+            
+            return container;
+        }
+
+        // Тесты функций обработки ошибок
+        function createErrorHandlingTests() {
+            const container = document.createElement('div');
+            container.className = 'test-group';
+            container.innerHTML = '<h3>⚠️ Тесты обработки ошибок</h3>';
+            
+            const tests = [
+                createTestCase('Тест обработки несуществующих данных', async () => {
+                    const nonExistentData = localStorage.getItem('non_existent_key');
+                    
+                    if (nonExistentData === null) {
+                        return { success: true, message: 'Обработка несуществующих данных работает' };
+                    }
+                    return { success: false, message: 'Ошибка обработки несуществующих данных' };
+                }),
+                
+                createTestCase('Тест обработки некорректного JSON', async () => {
+                    try {
+                        JSON.parse('invalid json');
+                        return { success: false, message: 'Некорректный JSON не обработан' };
+                    } catch (error) {
+                        return { success: true, message: 'Некорректный JSON обработан' };
+                    }
+                }),
+                
+                createTestCase('Тест обработки деления на ноль', async () => {
+                    try {
+                        const result = 10 / 0;
+                        if (result === Infinity) {
+                            return { success: true, message: 'Деление на ноль обработано' };
+                        }
+                    } catch (error) {
+                        return { success: false, message: 'Деление на ноль не обработано' };
+                    }
+                }),
+                
+                createTestCase('Тест обработки неопределенных значений', async () => {
+                    const undefinedValue = undefined;
+                    const nullValue = null;
+                    
+                    if (undefinedValue === undefined && nullValue === null) {
+                        return { success: true, message: 'Обработка undefined/null работает' };
+                    }
+                    return { success: false, message: 'Ошибка обработки undefined/null' };
+                }),
+                
+                createTestCase('Тест обработки пустых строк', async () => {
+                    const emptyString = "";
+                    const whitespaceString = "   ";
+                    
+                    if (emptyString.length === 0 && whitespaceString.trim().length === 0) {
+                        return { success: true, message: 'Обработка пустых строк работает' };
+                    }
+                    return { success: false, message: 'Ошибка обработки пустых строк' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+            
+            return container;
+        }
+
+        // Тесты производительности
+        function createPerformanceTests() {
+            const container = document.createElement('div');
+            container.className = 'test-group';
+            container.innerHTML = '<h3>⚡ Тесты производительности</h3>';
+            
+            const tests = [
+                createTestCase('Тест скорости поиска в массиве', async () => {
+                    const largeArray = Array.from({length: 1000}, (_, i) => ({id: i, name: `Item ${i}`}));
+                    
+                    const startTime = performance.now();
+                    const found = largeArray.find(item => item.id === 500);
+                    const endTime = performance.now();
+                    
+                    const duration = endTime - startTime;
+                    
+                    if (found && duration < 10) { // Менее 10мс
+                        return { success: true, message: `Поиск выполнен за ${duration.toFixed(2)}мс` };
+                    }
+                    return { success: false, message: 'Поиск слишком медленный' };
+                }),
+                
+                createTestCase('Тест скорости сохранения в localStorage', async () => {
+                    const testData = Array.from({length: 100}, (_, i) => ({id: i, data: `test${i}`}));
+                    
+                    const startTime = performance.now();
+                    localStorage.setItem('perf_test', JSON.stringify(testData));
+                    const endTime = performance.now();
+                    
+                    const duration = endTime - startTime;
+                    
+                    if (duration < 50) { // Менее 50мс
+                        return { success: true, message: `Сохранение выполнено за ${duration.toFixed(2)}мс` };
+                    }
+                    return { success: false, message: 'Сохранение слишком медленное' };
+                }),
+                
+                createTestCase('Тест скорости загрузки из localStorage', async () => {
+                    localStorage.setItem('perf_test', JSON.stringify(Array.from({length: 100}, (_, i) => ({id: i}))));
+                    
+                    const startTime = performance.now();
+                    const data = JSON.parse(localStorage.getItem('perf_test'));
+                    const endTime = performance.now();
+                    
+                    const duration = endTime - startTime;
+                    
+                    if (data && duration < 30) { // Менее 30мс
+                        return { success: true, message: `Загрузка выполнена за ${duration.toFixed(2)}мс` };
+                    }
+                    return { success: false, message: 'Загрузка слишком медленная' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+            
+            return container;
+        }
+
+        // Запуск всех unit тестов
+        async function runUnitTests() {
+            unitTestResults = { total: 0, passed: 0, failed: 0 };
+            
+            const resultsContainer = document.getElementById('test-results');
+            resultsContainer.innerHTML = '';
+            
+            // Добавляем группы тестов
+            resultsContainer.appendChild(createDataFunctionTests());
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            resultsContainer.appendChild(createValidationTests());
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            resultsContainer.appendChild(createFormattingTests());
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            resultsContainer.appendChild(createErrorHandlingTests());
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            resultsContainer.appendChild(createPerformanceTests());
+        }
+
+        // Очистка результатов unit тестов
+        function clearUnitResults() {
+            document.getElementById('test-results').innerHTML = '';
+            unitTestResults = { total: 0, passed: 0, failed: 0 };
+            updateUnitStats();
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUnitStats();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация - Аудитерия</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+    <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+    <header class="site-header">
+        <a href="index.html" class="logo">АУДИТЕРИЯ</a>
+        <nav>
+            <a href="index.html">Главная</a>
+        </nav>
+        <div class="user-actions">
+            <a href="login.html" class="login-btn">Войти</a>
+        </div>
+    </header>
+
+    <main class="page-content auth-page">
+        <div class="form-container">
+            <h2>Регистрация</h2>
+            <form id="register-form">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Пароль</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="buy-btn">Зарегистрироваться</button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="site-footer-main">
+        <div class="footer-content">
+            <div class="footer-logo">Аудитерия</div>
+            <div class="footer-links">
+                <div class="footer-column">
+                    <h3>Жанры</h3>
+                    <ul>
+                        <li><a href="#">Нон-фикшн</a></li>
+                        <li><a href="#">Психология</a></li>
+                        <li><a href="#">Бизнес</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Категории</h3>
+                    <ul>
+                        <li><a href="#">Популярное</a></li>
+                        <li><a href="#">Новинки</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Разделы</h3>
+                    <ul>
+                        <li><a href="#">Как купить</a></li>
+                        <li><a href="#">Контакты</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <script src="config/api-config.js"></script>
+    <script src="scripts/auth.js"></script>
+</body>
+</html>

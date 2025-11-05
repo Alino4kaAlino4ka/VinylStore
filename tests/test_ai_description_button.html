@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тесты кнопки AI-описание</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .test-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .results {
+            margin-top: 30px;
+        }
+        
+        .test-result {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 4px solid;
+            background: #f8f9fa;
+        }
+        
+        .test-result.passed {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+        
+        .test-result.failed {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+        
+        .test-result.error {
+            border-left-color: #ffc107;
+            background: #fff3cd;
+        }
+        
+        .summary {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        
+        .summary h2 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .stat {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .stat.passed .stat-value {
+            color: #28a745;
+        }
+        
+        .stat.failed .stat-value {
+            color: #dc3545;
+        }
+        
+        .stat.total .stat-value {
+            color: #667eea;
+        }
+        
+        .stat.success .stat-value {
+            color: #28a745;
+        }
+        
+        #console-output {
+            margin-top: 20px;
+            padding: 15px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Тесты кнопки AI-описание</h1>
+        <p class="subtitle">Unit-тесты для функциональности генерации AI-описаний в админ-панели</p>
+        
+        <div class="test-controls">
+            <button class="btn-primary" onclick="runTests()">▶️ Запустить тесты</button>
+            <button class="btn-secondary" onclick="clearResults()">🗑️ Очистить результаты</button>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="loading" id="loading" style="display: none;">
+                Запуск тестов...
+            </div>
+        </div>
+        
+        <div class="summary" id="summary" style="display: none;">
+            <h2>📊 Статистика тестирования</h2>
+            <div class="summary-stats" id="stats"></div>
+        </div>
+        
+        <div id="console-output"></div>
+    </div>
+    
+    <script>
+        // Перехватываем console.log для отображения в UI
+        const originalLog = console.log;
+        const consoleOutput = document.getElementById('console-output');
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleOutput.textContent += message + '\n';
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        };
+        
+        // Перехватываем console.error
+        const originalError = console.error;
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            consoleOutput.textContent += '❌ ERROR: ' + message + '\n';
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        };
+        
+        let testResults = null;
+        
+        // Подключаем тестовый файл
+        const script = document.createElement('script');
+        script.src = 'test_ai_description_button.js';
+        script.onload = function() {
+            console.log('✅ Тестовый файл загружен');
+        };
+        script.onerror = function() {
+            console.error('❌ Ошибка загрузки тестового файла');
+        };
+        document.head.appendChild(script);
+        
+        function runTests() {
+            const resultsDiv = document.getElementById('results');
+            const loadingDiv = document.getElementById('loading');
+            const summaryDiv = document.getElementById('summary');
+            const statsDiv = document.getElementById('stats');
+            
+            // Очищаем предыдущие результаты
+            resultsDiv.innerHTML = '';
+            consoleOutput.textContent = '';
+            
+            // Показываем загрузку
+            loadingDiv.style.display = 'block';
+            summaryDiv.style.display = 'none';
+            
+            // Запускаем тесты через небольшую задержку для инициализации
+            setTimeout(() => {
+                if (typeof runAIDescriptionButtonTests === 'function') {
+                    testResults = runAIDescriptionButtonTests();
+                    displayResults(testResults);
+                } else {
+                    loadingDiv.style.display = 'none';
+                    resultsDiv.innerHTML = '<div class="test-result error">❌ Функция тестирования не найдена. Убедитесь, что файл test_ai_description_button.js загружен.</div>';
+                }
+            }, 100);
+        }
+        
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            const loadingDiv = document.getElementById('loading');
+            const summaryDiv = document.getElementById('summary');
+            const statsDiv = document.getElementById('stats');
+            
+            loadingDiv.style.display = 'none';
+            
+            // Отображаем статистику
+            const successRate = results.total > 0 
+                ? ((results.passed / results.total) * 100).toFixed(1) 
+                : 0;
+            
+            statsDiv.innerHTML = `
+                <div class="stat total">
+                    <div class="stat-value">${results.total}</div>
+                    <div class="stat-label">Всего тестов</div>
+                </div>
+                <div class="stat passed">
+                    <div class="stat-value">${results.passed}</div>
+                    <div class="stat-label">Пройдено</div>
+                </div>
+                <div class="stat failed">
+                    <div class="stat-value">${results.failed}</div>
+                    <div class="stat-label">Провалено</div>
+                </div>
+                <div class="stat success">
+                    <div class="stat-value">${successRate}%</div>
+                    <div class="stat-label">Успешность</div>
+                </div>
+            `;
+            
+            summaryDiv.style.display = 'block';
+            
+            // Отображаем итоговое сообщение
+            if (results.failed === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="test-result passed">
+                        <strong>🎉 Все тесты прошли успешно!</strong>
+                        <p>Все ${results.total} тестов пройдены без ошибок.</p>
+                    </div>
+                `;
+            } else {
+                resultsDiv.innerHTML = `
+                    <div class="test-result failed">
+                        <strong>⚠️ Некоторые тесты провалились</strong>
+                        <p>Пройдено: ${results.passed} из ${results.total} тестов.</p>
+                        <p>Провалено: ${results.failed} тестов.</p>
+                        <p>Проверьте консоль для деталей.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('console-output').textContent = '';
+            console.log('Результаты очищены');
+        }
+        
+        // Автозапуск тестов при загрузке (опционально)
+        // window.addEventListener('DOMContentLoaded', () => {
+        //     setTimeout(runTests, 500);
+        // });
+    </script>
+</body>
+</html>
+

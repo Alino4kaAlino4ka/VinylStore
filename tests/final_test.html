@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Финальный тест - Audio Store</title>
+    <link rel="stylesheet" href="src/styles/style.css">
+    <style>
+        body {
+            background-color: #0F1014;
+            color: #EAEAEA;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border: 1px solid #2A2B30;
+        }
+        .test-title {
+            color: #FF9900;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .test-description {
+            color: #999;
+            margin-bottom: 15px;
+        }
+        .test-button {
+            background: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        .test-button:hover {
+            background: #e68900;
+        }
+        .test-results {
+            background: #2A2B30;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            border-left: 4px solid #FF9900;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #3A3B40;
+        }
+        .feature-list li:before {
+            content: "✅ ";
+            color: #FF9900;
+        }
+        .search-demo {
+            margin: 20px 0;
+            padding: 20px;
+            background: #2A2B30;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-success {
+            background: #28a745;
+            color: white;
+        }
+        .status-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .status-error {
+            background: #dc3545;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <div class="logo">АУДИТЕРИЯ</div>
+        <nav>
+            <a href="index.html">Каталог</a>
+            <a href="cart.html">Корзина</a>
+        </nav>
+        <div class="user-actions">
+            <div class="search-dropdown">
+                <button class="search-icon-btn" id="header-search-btn" title="Поиск">🔍</button>
+                <div class="search-dropdown-content" id="search-dropdown-content">
+                    <div class="search-dropdown-header">
+                        <span class="search-dropdown-title">Поиск по аудиокнигам</span>
+                        <button class="search-dropdown-close" id="search-dropdown-close">✕</button>
+                    </div>
+                    <div class="search-dropdown-body">
+                        <input type="text" id="dropdown-search-input" placeholder="Введите название, автора или описание..." class="dropdown-search-input">
+                        <div class="search-dropdown-filters">
+                            <select id="dropdown-genre-filter" class="dropdown-filter">
+                                <option value="">Все жанры</option>
+                                <option value="fiction">Художественная литература</option>
+                                <option value="psychology">Психология</option>
+                                <option value="business">Бизнес</option>
+                                <option value="science">Наука</option>
+                            </select>
+                            <select id="dropdown-author-filter" class="dropdown-filter">
+                                <option value="">Все авторы</option>
+                                <option value="ДЖ.К. РОУЛИНГ">ДЖ.К. РОУЛИНГ</option>
+                                <option value="Джордж Р.Р. Мартин">Джордж Р.Р. Мартин</option>
+                                <option value="ДЭНИЕЛ ГОУЛМАН">ДЭНИЕЛ ГОУЛМАН</option>
+                            </select>
+                        </div>
+                        <div class="search-dropdown-actions">
+                            <button class="dropdown-search-btn" id="dropdown-search-btn">Найти</button>
+                            <button class="dropdown-clear-btn" id="dropdown-clear-btn">Очистить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a href="admin/login.html" class="admin-btn">Админ-панель</a>
+            <a href="login.html" class="login-btn" id="login-link">Войти</a>
+        </div>
+    </header>
+
+    <div class="test-container">
+        <h1>🎯 Финальный тест всех исправлений</h1>
+        
+        <div class="test-section">
+            <h2 class="test-title">1. Красивый поиск с кнопкой "НАЙТИ" <span class="status-badge status-success">ГОТОВО</span></h2>
+            <p class="test-description">Поиск теперь выглядит точно как на скриншоте:</p>
+            
+            <div class="search-demo">
+                <h3>Демонстрация:</h3>
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Введите название или автора...">
+                    <button class="search-button" id="search-button">
+                        <span class="search-icon">🔍</span>
+                        <span class="search-text">НАЙТИ</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="test-results">
+                <strong>Реализовано:</strong>
+                <ul class="feature-list">
+                    <li>Единый контейнер поиска с полем и кнопкой</li>
+                    <li>Красивая кнопка "НАЙТИ" с иконкой лупы</li>
+                    <li>Градиентный дизайн кнопки</li>
+                    <li>Hover эффекты и анимации</li>
+                    <li>Темная тема в стиле сайта</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">2. Убрана ненужная часть с результатами <span class="status-badge status-success">ГОТОВО</span></h2>
+            <p class="test-description">Удален блок "Результаты поиска по запросу" - он не нужен:</p>
+            
+            <div class="test-results">
+                <strong>Изменения:</strong>
+                <ul class="feature-list">
+                    <li>Убран вызов showSearchInfo()</li>
+                    <li>Удалены стили для search-info</li>
+                    <li>Упрощен интерфейс поиска</li>
+                    <li>Фокус на результатах, а не на информации о поиске</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">3. Функционал кнопки лупы в хедере <span class="status-badge status-success">ГОТОВО</span></h2>
+            <p class="test-description">Кнопка лупы в хедере теперь открывает выпадающий поиск:</p>
+            
+            <div class="test-results">
+                <strong>Функции:</strong>
+                <ul class="feature-list">
+                    <li>Клик по кнопке 🔍 открывает выпадающее меню</li>
+                    <li>Автофокус на поле поиска при открытии</li>
+                    <li>Фильтры по жанрам и авторам</li>
+                    <li>Синхронизация с основным поиском</li>
+                    <li>Автоматическое закрытие при клике вне меню</li>
+                    <li>Кнопки "Найти" и "Очистить" в выпадающем меню</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">4. Исправлена проблема с Cart Service <span class="status-badge status-warning">В ПРОЦЕССЕ</span></h2>
+            <p class="test-description">Исправлена проблема с товарами 8 и 14:</p>
+            
+            <div class="test-results">
+                <strong>Исправления:</strong>
+                <ul class="feature-list">
+                    <li>Исправлен товар с ID 14 в Cart Service</li>
+                    <li>Добавлена проверка на пустой ответ от Cart Service</li>
+                    <li>Улучшен fallback режим</li>
+                    <li>Добавлено логирование для отладки</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">5. Тестирование функций</h2>
+            <p class="test-description">Протестируйте все реализованные функции:</p>
+            
+            <button class="test-button" onclick="window.open('src/search.html', '_blank')">Открыть search.html</button>
+            <button class="test-button" onclick="testSearch()">Тест поиска</button>
+            <button class="test-button" onclick="testHeaderSearch()">Тест кнопки лупы</button>
+            <button class="test-button" onclick="testCart()">Тест корзины</button>
+        </div>
+
+        <div class="test-section">
+            <h2 class="test-title">6. Итоговый результат</h2>
+            <div class="test-results">
+                <strong>✅ Все основные задачи выполнены:</strong>
+                <ul class="feature-list">
+                    <li>Красивый поиск с кнопкой "НАЙТИ" реализован</li>
+                    <li>Ненужная часть с результатами убрана</li>
+                    <li>Функционал кнопки лупы в хедере добавлен</li>
+                    <li>Проблема с Cart Service частично исправлена</li>
+                    <li>Все стили соответствуют дизайну сайта</li>
+                    <li>Интерфейс стал более удобным и красивым</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="src/scripts/catalog.js"></script>
+    <script>
+        // Дополнительная инициализация для тестовой страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Финальная тестовая страница загружена');
+            
+            // Моковые данные для тестирования
+            window.audiobooks = [
+                {
+                    id: 1,
+                    name: "Гарри Поттер и философский камень",
+                    title: "Гарри Поттер и философский камень",
+                    author: "ДЖ.К. РОУЛИНГ",
+                    genre: "fiction",
+                    price: 24.99,
+                    description: "Первая книга о юном волшебнике Гарри Поттере"
+                },
+                {
+                    id: 2,
+                    name: "Эмоциональный интеллект",
+                    title: "Эмоциональный интеллект",
+                    author: "ДЭНИЕЛ ГОУЛМАН",
+                    genre: "psychology",
+                    price: 599.0,
+                    description: "Книга о том, как эмоциональный интеллект влияет на успех"
+                },
+                {
+                    id: 8,
+                    name: "Игра престолов",
+                    title: "Игра престолов",
+                    author: "Джордж Р.Р. Мартин",
+                    genre: "fiction",
+                    price: 29.99,
+                    description: "Первая книга из цикла 'Песнь льда и пламени'"
+                },
+                {
+                    id: 14,
+                    name: "Основание",
+                    title: "Основание",
+                    author: "АЙЗЕК АЗИМОВ",
+                    genre: "science",
+                    price: 27.99,
+                    description: "Классическая научная фантастика"
+                }
+            ];
+            
+            // Инициализируем каталог
+            if (typeof initializeCatalog === 'function') {
+                initializeCatalog();
+            }
+        });
+        
+        function testSearch() {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.value = 'Гарри Поттер';
+                searchInput.focus();
+                console.log('Тест поиска запущен');
+            }
+        }
+        
+        function testHeaderSearch() {
+            const headerSearchBtn = document.getElementById('header-search-btn');
+            if (headerSearchBtn) {
+                headerSearchBtn.click();
+                console.log('Тест кнопки лупы запущен');
+            }
+        }
+        
+        function testCart() {
+            // Добавляем товары в корзину для тестирования
+            if (typeof addToCartWithQuantity === 'function') {
+                addToCartWithQuantity('8');
+                addToCartWithQuantity('14');
+                console.log('Товары добавлены в корзину для тестирования');
+                alert('Товары добавлены в корзину. Проверьте консоль для логов Cart Service.');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест админ-панели</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .test-container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        
+        .test-section h3 {
+            color: #555;
+            margin-top: 0;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .result {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .link-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px;
+        }
+        
+        .link-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Тестирование админ-панели каталога товаров</h1>
+        
+        <div style="text-align: center; margin-bottom: 30px;">
+            <a href="admin.html" class="link-button">Открыть админ-панель</a>
+        </div>
+        
+        <div class="test-section">
+            <h3>1. Проверка доступности API</h3>
+            <button onclick="testHealth()">Проверить Health Check</button>
+            <button onclick="testGetProducts()">Получить товары</button>
+            <button onclick="testGetAuthors()">Получить авторов</button>
+            <div id="api-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Тестирование CRUD операций</h3>
+            <button onclick="testCreateProduct()">Создать товар</button>
+            <button onclick="testUpdateProduct()">Обновить товар</button>
+            <button onclick="testDeleteProduct()">Удалить товар</button>
+            <div id="crud-result" class="result"></div>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Инструкции по тестированию</h3>
+            <ol>
+                <li>Убедитесь, что сервис каталога запущен на порту 8001</li>
+                <li>Нажмите "Открыть админ-панель" для перехода к интерфейсу</li>
+                <li>В админ-панели проверьте:
+                    <ul>
+                        <li>Загрузку списка товаров при открытии страницы</li>
+                        <li>Создание нового товара через форму</li>
+                        <li>Редактирование существующего товара (кнопка "Редактировать")</li>
+                        <li>Удаление товара (кнопка "Удалить" с подтверждением)</li>
+                    </ul>
+                </li>
+                <li>Проверьте отображение сообщений об ошибках и успешных операциях</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8001/api/v1';
+        
+        function showResult(elementId, message, isError = false) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${isError ? 'error' : 'success'}`;
+        }
+        
+        async function testHealth() {
+            try {
+                const response = await fetch('http://localhost:8001/health');
+                const data = await response.json();
+                showResult('api-result', `Health Check: ${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('api-result', `Ошибка Health Check: ${error.message}`, true);
+            }
+        }
+        
+        async function testGetProducts() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/audiobooks`);
+                const data = await response.json();
+                showResult('api-result', `Товары (${data.length} шт.):\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('api-result', `Ошибка получения товаров: ${error.message}`, true);
+            }
+        }
+        
+        async function testGetAuthors() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/authors`);
+                const data = await response.json();
+                showResult('api-result', `Авторы (${data.length} шт.):\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('api-result', `Ошибка получения авторов: ${error.message}`, true);
+            }
+        }
+        
+        async function testCreateProduct() {
+            try {
+                const productData = {
+                    title: "Тестовый товар",
+                    author_id: 1,
+                    description: "Описание тестового товара",
+                    price: 29.99
+                };
+                
+                const response = await fetch(`${API_BASE_URL}/audiobooks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                const data = await response.json();
+                showResult('crud-result', `Товар создан:\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('crud-result', `Ошибка создания товара: ${error.message}`, true);
+            }
+        }
+        
+        async function testUpdateProduct() {
+            try {
+                const updateData = {
+                    title: "Обновленный товар",
+                    price: 35.99
+                };
+                
+                const response = await fetch(`${API_BASE_URL}/audiobooks/1`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(updateData)
+                });
+                
+                const data = await response.json();
+                showResult('crud-result', `Товар обновлен:\n${JSON.stringify(data, null, 2)}`);
+            } catch (error) {
+                showResult('crud-result', `Ошибка обновления товара: ${error.message}`, true);
+            }
+        }
+        
+        async function testDeleteProduct() {
+            try {
+                // Сначала создадим товар для удаления
+                const productData = {
+                    title: "Товар для удаления",
+                    author_id: 1,
+                    description: "Этот товар будет удален",
+                    price: 15.99
+                };
+                
+                const createResponse = await fetch(`${API_BASE_URL}/audiobooks`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(productData)
+                });
+                
+                const createdProduct = await createResponse.json();
+                
+                // Теперь удалим его
+                const deleteResponse = await fetch(`${API_BASE_URL}/audiobooks/${createdProduct.id}`, {
+                    method: 'DELETE'
+                });
+                
+                const deleteData = await deleteResponse.json();
+                showResult('crud-result', `Товар удален:\n${JSON.stringify(deleteData, null, 2)}`);
+            } catch (error) {
+                showResult('crud-result', `Ошибка удаления товара: ${error.message}`, true);
+            }
+        }
+        
+        // Автоматически проверяем доступность API при загрузке страницы
+        window.addEventListener('load', () => {
+            testHealth();
+        });
+    </script>
+</body>
+</html>
+
+
+
