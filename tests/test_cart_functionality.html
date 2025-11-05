@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест корзины - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .test-section {
+            background-color: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #28a745;
+            color: white;
+        }
+        .error {
+            background-color: #dc3545;
+            color: white;
+        }
+        .info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        pre {
+            background-color: #2A2B30;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест функциональности корзины</h1>
+    
+    <div class="test-section">
+        <h2>1. Тест добавления товаров в корзину</h2>
+        <p>Добавьте товары в корзину:</p>
+        <button onclick="addToCart('main-book')">Добавить "Гарри Поттер"</button>
+        <button onclick="addToCart('1')">Добавить "Крестный отец"</button>
+        <button onclick="addToCart('2')">Добавить "Тени прошлого"</button>
+        <button onclick="addToCart('3')">Добавить "Алмазная колесница"</button>
+        <div id="cart-status" class="status info">Корзина пуста</div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Тест расчета корзины</h2>
+        <button onclick="testCalculateCart()">Рассчитать корзину</button>
+        <div id="calculate-status"></div>
+        <pre id="calculate-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Тест создания заказа</h2>
+        <button onclick="testCreateOrder()">Создать заказ</button>
+        <div id="order-status"></div>
+        <pre id="order-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Переход к странице корзины</h2>
+        <button onclick="window.open('cart.html', '_blank')">Открыть страницу корзины</button>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Очистка корзины</h2>
+        <button onclick="clearCart()">Очистить корзину</button>
+    </div>
+
+    <script>
+        // Функции для работы с корзиной (копируем из script.js)
+        function getCart() {
+            const cart = localStorage.getItem('cart');
+            return cart ? JSON.parse(cart) : [];
+        }
+
+        function saveCart(cart) {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        function addToCart(productId) {
+            const cart = getCart();
+            if (!cart.includes(productId)) {
+                cart.push(productId);
+                saveCart(cart);
+                updateCartStatus();
+                showStatus('cart-status', 'success', `Товар ${productId} добавлен в корзину!`);
+            } else {
+                showStatus('cart-status', 'error', 'Этот товар уже в корзине!');
+            }
+        }
+
+        function clearCart() {
+            localStorage.removeItem('cart');
+            updateCartStatus();
+            showStatus('cart-status', 'info', 'Корзина очищена');
+        }
+
+        function updateCartStatus() {
+            const cart = getCart();
+            const status = document.getElementById('cart-status');
+            if (cart.length === 0) {
+                status.textContent = 'Корзина пуста';
+                status.className = 'status info';
+            } else {
+                status.textContent = `В корзине ${cart.length} товаров: ${cart.join(', ')}`;
+                status.className = 'status success';
+            }
+        }
+
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        // Тест расчета корзины
+        async function testCalculateCart() {
+            const cart = getCart();
+            if (cart.length === 0) {
+                showStatus('calculate-status', 'error', 'Корзина пуста! Добавьте товары.');
+                return;
+            }
+
+            try {
+                showStatus('calculate-status', 'info', 'Отправка запроса...');
+                
+                const response = await fetch('http://localhost:8001/api/v1/cart/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_ids: cart
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('calculate-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('calculate-status', 'success', 'Расчет корзины успешен!');
+                
+            } catch (error) {
+                showStatus('calculate-status', 'error', `Ошибка: ${error.message}`);
+                document.getElementById('calculate-result').textContent = error.toString();
+            }
+        }
+
+        // Тест создания заказа
+        async function testCreateOrder() {
+            const cart = getCart();
+            if (cart.length === 0) {
+                showStatus('order-status', 'error', 'Корзина пуста! Добавьте товары.');
+                return;
+            }
+
+            try {
+                showStatus('order-status', 'info', 'Создание заказа...');
+                
+                const response = await fetch('http://localhost:8002/api/v1/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_ids: cart
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('order-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('order-status', 'success', 'Заказ создан успешно!');
+                
+            } catch (error) {
+                showStatus('order-status', 'error', `Ошибка: ${error.message}`);
+                document.getElementById('order-result').textContent = error.toString();
+            }
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartStatus();
+        });
+    </script>
+</body>
+</html>

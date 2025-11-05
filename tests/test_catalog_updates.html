@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест обновлений каталога</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .cover-preview {
+            max-width: 200px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Тест обновлений каталога</h1>
+        
+        <div class="test-section">
+            <h3>✅ Выполненные изменения</h3>
+            <div class="status success">
+                <strong>1. Убрано видео превью:</strong>
+                <ul>
+                    <li>Удален overlay с кнопкой воспроизведения</li>
+                    <li>Убрана функция playPreview()</li>
+                    <li>Удалены CSS стили для видео элементов</li>
+                </ul>
+            </div>
+            
+            <div class="status success">
+                <strong>2. Обновлена обложка "Основания":</strong>
+                <p>Новая обложка: <a href="https://cdn.forbes.ru/forbes-static/816x545/new/2021/12/15317382209508-61c3517ea34b6.webp" target="_blank">Forbes.ru</a></p>
+                <img src="https://cdn.forbes.ru/forbes-static/816x545/new/2021/12/15317382209508-61c3517ea34b6.webp" alt="Обложка Основания" class="cover-preview">
+            </div>
+            
+            <div class="status success">
+                <strong>3. Объединены все книги:</strong>
+                <ul>
+                    <li>7 книг серии Гарри Поттер</li>
+                    <li>5 книг серии Игра Престолов</li>
+                    <li>4 классических произведения</li>
+                    <li>6 дополнительных книг</li>
+                    <li><strong>Всего: 22 книги</strong></li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Проверка каталога</h3>
+            <div class="status info">
+                <strong>Что проверить в каталоге:</strong>
+                <ol>
+                    <li>Открыть каталог и убедиться, что нет кнопок воспроизведения</li>
+                    <li>Проверить, что обложка "Основания" загружается корректно</li>
+                    <li>Убедиться, что все 22 книги отображаются</li>
+                    <li>Проверить работу фильтров и пагинации</li>
+                    <li>Протестировать добавление в корзину</li>
+                </ol>
+            </div>
+            <button onclick="openCatalog()">Открыть каталог</button>
+            <button onclick="testAPI()">Проверить API</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Статистика каталога</h3>
+            <div id="catalog-stats"></div>
+        </div>
+    </div>
+
+    <script>
+        function openCatalog() {
+            window.open('src/catalog.html', '_blank');
+        }
+
+        async function testAPI() {
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/products');
+                if (response.ok) {
+                    const data = await response.json();
+                    const statsDiv = document.getElementById('catalog-stats');
+                    statsDiv.innerHTML = `
+                        <div class="status success">
+                            <strong>API работает корректно!</strong><br>
+                            Загружено книг: ${data.products.length}<br>
+                            <strong>Серии книг:</strong><br>
+                            • Гарри Поттер: ${data.products.filter(p => p.author === 'ДЖ.К. РОУЛИНГ').length} книг<br>
+                            • Игра Престолов: ${data.products.filter(p => p.author === 'Джордж Р.Р. Мартин').length} книг<br>
+                            • Классика: ${data.products.filter(p => ['ДЭНИЕЛ ГОУЛМАН', 'АЙЗЕК АЗИМОВ', 'ФРЭНК ГЕРБЕРТ', 'ДЖ.Р.Р. ТОЛКИН'].includes(p.author)).length} книг
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('catalog-stats').innerHTML = '<div class="status error">API недоступен</div>';
+                }
+            } catch (error) {
+                document.getElementById('catalog-stats').innerHTML = '<div class="status error">Ошибка подключения к API</div>';
+            }
+        }
+
+        // Автоматическая проверка при загрузке
+        window.addEventListener('load', testAPI);
+    </script>
+</body>
+</html>

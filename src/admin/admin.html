@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📚</text></svg>">
+    <link rel="stylesheet" href="../styles/style.css">
+    <style>
+        #generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+        }
+        
+        #generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <a href="../index.html" class="logo">ВИНИЛ ШОП</a>
+        <nav>
+            <a href="../cart.html">Корзина (<span id="cart-count">0</span>)</a>
+            <a href="#" class="active">Админ-панель</a>
+        </nav>
+        <div class="user-actions">
+            <a href="../index.html">Вернуться на сайт</a>
+            <button onclick="logoutAdmin()" class="logout-btn">Выйти</button>
+        </div>
+    </header>
+
+    <main class="admin-content">
+        <div class="container">
+            <h1>Панель администратора</h1>
+        
+        <div class="offline-notice">
+            <strong>Режим без сервера:</strong> Админ-панель работает в локальном режиме. Данные сохраняются в браузере.
+        </div>
+        
+        <h2>Добавить/Редактировать товар</h2>
+        <form id="product-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="title">Название:</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="author_id">ID исполнителя:</label>
+                    <input type="number" id="author_id" name="author_id" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Описание:</label>
+                <div class="description-input-wrapper" style="display: flex; gap: 10px; align-items: flex-start; flex-wrap: wrap;">
+                    <textarea id="description" name="description" required style="flex: 1; min-width: 200px;"></textarea>
+                    <button type="button" id="generate-description-btn" onclick="generateDescription()" style="white-space: nowrap; padding: 10px 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; height: fit-content;">
+                        🤖 AI Генератор
+                    </button>
+                </div>
+                <div id="description-status" style="margin-top: 5px; font-size: 12px; color: #666;"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="price">Цена:</label>
+                <input type="number" id="price" name="price" step="0.01" min="0" required>
+            </div>
+            
+            <button type="submit">Сохранить</button>
+        </form>
+    </div>
+    
+    <div class="container">
+        <h2>Центр управления АІ (Редактор промптов)</h2>
+        <div id="prompts-list"></div>
+    </div>
+    
+    <div class="container">
+        <h2 style="color: #ff6b35; border-left: 4px solid #ff6b35; padding-left: 15px; margin-bottom: 25px;">Core Domain: AI-Рекомендации</h2>
+        <div class="form-group" style="background: #1a1a1a; padding: 25px; border-radius: 10px; margin-bottom: 20px;">
+            <label for="ai-prompt" style="display: block; color: #e0e0e0; margin-bottom: 10px; font-weight: 600;">Введите запрос для AI-рекомендаций:</label>
+            <textarea id="ai-prompt" name="ai-prompt" rows="4" placeholder="Опишите, какие рекомендации вам нужны..." style="width: 100%; padding: 15px; border: 2px solid #333; border-radius: 8px; background: #2a2a2a; color: #e0e0e0; font-size: 16px; resize: vertical; box-sizing: border-box;"></textarea>
+        </div>
+        <button id="generate-btn" type="button" style="background: linear-gradient(135deg, #ff6b35, #ff8e53); color: white; border: none; padding: 15px 30px; border-radius: 25px; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 20px; transition: all 0.3s ease;">Сгенерировать рекомендации</button>
+        <div id="ai-result" style="margin-top: 20px; padding: 20px; border: 1px solid #333; border-radius: 10px; background: #1a1a1a; min-height: 50px; display: none; color: #e0e0e0;">
+            <!-- Результат AI-рекомендаций будет отображаться здесь -->
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2>Товары</h2>
+        <div id="loading" class="loading" style="display: none;">Загрузка...</div>
+        <div id="error-message" class="error" style="display: none;"></div>
+        <div id="success-message" class="success" style="display: none;"></div>
+        
+        <table id="products-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Исполнитель ID</th>
+                    <th>Описание</th>
+                    <th>Цена</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Товары будут загружены динамически -->
+            </tbody>
+        </table>
+    </div>
+    </main>
+
+    <script src="../config/api-config.js"></script>
+    <script src="admin.js"></script>
+    <script>
+        // Обновление счетчика корзины
+        document.addEventListener('DOMContentLoaded', function() {
+            function updateCartCount() {
+                try {
+                    const cartWithQuantity = JSON.parse(localStorage.getItem('cartWithQuantity') || '{}');
+                    const totalItems = Object.values(cartWithQuantity).reduce((sum, quantity) => sum + (quantity || 0), 0);
+                    const cartCountElement = document.getElementById('cart-count');
+                    if (cartCountElement) {
+                        cartCountElement.textContent = totalItems;
+                    }
+                } catch (e) {
+                    try {
+                        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+                        const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+                        const cartCountElement = document.getElementById('cart-count');
+                        if (cartCountElement) {
+                            cartCountElement.textContent = totalItems;
+                        }
+                    } catch (e2) {
+                        console.error('Ошибка обновления счетчика корзины:', e2);
+                    }
+                }
+            }
+            updateCartCount();
+        });
+    </script>
+</body>
+</html>
+
+
+

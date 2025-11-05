@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест AI-рекомендаций</title>
+    <style>
+        body {
+            background: #0F1014;
+            color: #EAEAEA;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #1A1B20;
+            padding: 30px;
+            border-radius: 10px;
+        }
+        
+        h2 {
+            color: #ff6b35;
+            border-left: 4px solid #ff6b35;
+            padding-left: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            background: #1a1a1a;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #e0e0e0;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #333;
+            border-radius: 8px;
+            background: #2a2a2a;
+            color: #e0e0e0;
+            font-size: 16px;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #ff6b35, #ff8e53);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        #ai-result {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 10px;
+            background: #1a1a1a;
+            min-height: 50px;
+            display: none;
+            color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Core Domain: AI-Рекомендации</h2>
+        <div class="form-group">
+            <label for="ai-prompt">Введите запрос для AI-рекомендаций:</label>
+            <textarea id="ai-prompt" name="ai-prompt" rows="4" placeholder="Опишите, какие рекомендации вам нужны..."></textarea>
+        </div>
+        <button id="generate-btn" type="button">Сгенерировать рекомендации</button>
+        <div id="ai-result">
+            <!-- Результат AI-рекомендаций будет отображаться здесь -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const generateBtn = document.getElementById('generate-btn');
+            const aiPrompt = document.getElementById('ai-prompt');
+            const aiResult = document.getElementById('ai-result');
+
+            generateBtn.addEventListener('click', async function() {
+                const prompt = aiPrompt.value.trim();
+                
+                if (!prompt) {
+                    alert('Пожалуйста, введите запрос для AI-рекомендаций');
+                    return;
+                }
+                
+                try {
+                    // Показываем индикатор загрузки
+                    generateBtn.disabled = true;
+                    generateBtn.textContent = 'Генерация...';
+                    aiResult.style.display = 'block';
+                    aiResult.innerHTML = '<div style="text-align: center; color: #666;">Генерация рекомендаций...</div>';
+                    
+                    // Отправляем POST запрос к API рекомендаций
+                    const response = await fetch('http://localhost:8004/api/v1/recommendations/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            user_preferences: prompt,
+                            max_recommendations: 6,
+                            model: 'gpt-4'
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Отображаем результат в красивом формате
+                    let resultHtml = `
+                        <div style="background: #1a1a1a; padding: 20px; border-radius: 8px; margin: 10px 0;">
+                            <h3 style="color: #ff6b35; margin-bottom: 15px;">Результат AI-анализа:</h3>
+                            <p style="color: #e0e0e0; margin-bottom: 20px;">
+                                <strong>Модель:</strong> ${data.model || 'gpt-4'} | 
+                                <strong>Проанализировано книг:</strong> ${data.recommendations ? data.recommendations.length : 0}
+                            </p>
+                            
+                            <h3 style="color: #ff6b35; margin-bottom: 15px;">Рекомендации:</h3>
+                    `;
+                    
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        resultHtml += '<ul style="color: #e0e0e0; line-height: 1.6;">';
+                        data.recommendations.forEach((book, index) => {
+                            resultHtml += `
+                                <li style="margin-bottom: 15px;">
+                                    <strong style="color: #ff6b35;">${book.title || book.name} (id: ${book.id})</strong><br>
+                                    <span style="color: #b0b0b0; font-size: 14px;">${book.reasoning || 'Рекомендация основана на ваших предпочтениях'}</span>
+                                </li>
+                            `;
+                        });
+                        resultHtml += '</ul>';
+                    } else {
+                        resultHtml += '<p style="color: #b0b0b0;">Рекомендации не найдены</p>';
+                    }
+                    
+                    if (data.reasoning) {
+                        resultHtml += `
+                            <div style="margin-top: 20px; padding: 15px; background: #2a2a2a; border-radius: 5px;">
+                                <h4 style="color: #ff6b35; margin-bottom: 10px;">Объяснение логики рекомендаций:</h4>
+                                <p style="color: #b0b0b0; line-height: 1.5;">${data.reasoning}</p>
+                            </div>
+                        `;
+                    }
+                    
+                    resultHtml += '</div>';
+                    aiResult.innerHTML = resultHtml;
+                    
+                } catch (error) {
+                    console.error('Ошибка при генерации рекомендаций:', error);
+                    aiResult.innerHTML = `
+                        <div style="color: #d32f2f;">
+                            <strong>Ошибка:</strong> Не удалось получить рекомендации. 
+                            <br>Проверьте, что сервис рекомендаций запущен на порту 8004.
+                            <br>Детали ошибки: ${error.message}
+                        </div>
+                    `;
+                } finally {
+                    // Восстанавливаем кнопку
+                    generateBtn.disabled = false;
+                    generateBtn.textContent = 'Сгенерировать рекомендации';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

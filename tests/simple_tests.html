@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простые тесты корзины</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .console {
+            background-color: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 500px;
+            overflow-y: auto;
+            margin: 20px 0;
+            white-space: pre-wrap;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .clear-btn {
+            background-color: #dc3545;
+        }
+        
+        .clear-btn:hover {
+            background-color: #c82333;
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Простые тесты функций корзины</h1>
+        
+        <div class="info">
+            <strong>Информация:</strong> Этот файл запускает базовые тесты для проверки работы функций корзины.
+            Результаты отображаются в консоли ниже.
+        </div>
+        
+        <div class="warning">
+            <strong>Важно:</strong> Убедитесь, что файл <code>src/scripts/script.js</code> подключен и содержит функции корзины.
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button onclick="runSimpleTests()">🚀 Запустить тесты</button>
+            <button onclick="clearConsole()" class="clear-btn">🗑️ Очистить консоль</button>
+        </div>
+        
+        <div class="console" id="console-output">
+            <div style="color: #888;">Консоль готова к работе. Нажмите "Запустить тесты" для начала тестирования.</div>
+        </div>
+        
+        <div class="info">
+            <strong>Дополнительные тесты:</strong>
+            <ul>
+                <li><a href="debug_cart.html">debug_cart.html</a> - Интерактивная отладка</li>
+                <li><a href="test_cart_frontend.html">test_cart_frontend.html</a> - Полный набор тестов</li>
+                <li><a href="test_cart_unit.html">test_cart_unit.html</a> - Unit-тесты</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Подключаем основной скрипт -->
+    <script src="src/scripts/script.js"></script>
+    
+    <script>
+        const consoleOutput = document.getElementById('console-output');
+        
+        // Переопределяем console.log для отображения в нашем элементе
+        const originalConsoleLog = console.log;
+        console.log = function(...args) {
+            // Вызываем оригинальный console.log
+            originalConsoleLog.apply(console, args);
+            
+            // Добавляем в наш консольный элемент
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const logElement = document.createElement('div');
+            logElement.textContent = message;
+            logElement.style.marginBottom = '2px';
+            
+            // Цветовое кодирование сообщений
+            if (message.includes('✅')) {
+                logElement.style.color = '#28a745';
+            } else if (message.includes('❌')) {
+                logElement.style.color = '#dc3545';
+            } else if (message.includes('🧪') || message.includes('📋')) {
+                logElement.style.color = '#ffc107';
+            } else if (message.includes('🎉')) {
+                logElement.style.color = '#17a2b8';
+            } else if (message.includes('⚠️')) {
+                logElement.style.color = '#fd7e14';
+            } else if (message.includes('ℹ️')) {
+                logElement.style.color = '#6f42c1';
+            }
+            
+            consoleOutput.appendChild(logElement);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        };
+        
+        // Переопределяем console.error
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const errorElement = document.createElement('div');
+            errorElement.textContent = 'ERROR: ' + message;
+            errorElement.style.color = '#dc3545';
+            errorElement.style.marginBottom = '2px';
+            
+            consoleOutput.appendChild(errorElement);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        };
+        
+        // Функция для очистки консоли
+        function clearConsole() {
+            consoleOutput.innerHTML = '<div style="color: #888;">Консоль очищена.</div>';
+        }
+        
+        // Функция для запуска простых тестов
+        function runSimpleTests() {
+            console.log('🧪 Запуск простых тестов функций корзины...');
+            
+            // Тест 1: Проверка наличия функций
+            console.log('\n📋 Проверка наличия функций:');
+            const functions = ['getCart', 'saveCart', 'addToCart', 'updateCartCount'];
+            let allFunctionsFound = true;
+            
+            functions.forEach(func => {
+                if (typeof window[func] === 'function') {
+                    console.log(`✅ ${func}() - найдена`);
+                } else {
+                    console.log(`❌ ${func}() - НЕ найдена`);
+                    allFunctionsFound = false;
+                }
+            });
+            
+            if (!allFunctionsFound) {
+                console.log('\n⚠️ Некоторые функции не найдены! Проверьте подключение script.js');
+                console.log('Убедитесь, что на странице есть: <script src="src/scripts/script.js"></script>');
+                return;
+            } else {
+                console.log('\n🎉 Все функции найдены! Продолжаем тестирование...');
+            }
+            
+            // Тест 2: getCart() с пустой корзиной
+            console.log('\n🧪 Тест getCart() с пустой корзиной:');
+            try {
+                localStorage.removeItem('cart');
+                const emptyCart = getCart();
+                if (Array.isArray(emptyCart) && emptyCart.length === 0) {
+                    console.log('✅ getCart() возвращает пустой массив');
+                } else {
+                    console.log(`❌ getCart() вернул: ${JSON.stringify(emptyCart)}`);
+                }
+            } catch (error) {
+                console.log(`❌ Ошибка в getCart(): ${error.message}`);
+            }
+            
+            // Тест 3: saveCart() и getCart()
+            console.log('\n🧪 Тест saveCart() и getCart():');
+            try {
+                const testCart = ['item1', 'item2', 'item3'];
+                saveCart(testCart);
+                const retrievedCart = getCart();
+                if (JSON.stringify(testCart) === JSON.stringify(retrievedCart)) {
+                    console.log('✅ saveCart() и getCart() работают корректно');
+                } else {
+                    console.log(`❌ Данные не совпадают. Сохранено: ${JSON.stringify(testCart)}, получено: ${JSON.stringify(retrievedCart)}`);
+                }
+            } catch (error) {
+                console.log(`❌ Ошибка в saveCart()/getCart(): ${error.message}`);
+            }
+            
+            // Тест 4: addToCart()
+            console.log('\n🧪 Тест addToCart():');
+            try {
+                localStorage.removeItem('cart');
+                
+                addToCart('test-product-1');
+                const cart = getCart();
+                if (cart.includes('test-product-1') && cart.length === 1) {
+                    console.log('✅ addToCart() добавляет товар');
+                } else {
+                    console.log(`❌ addToCart() добавил товар некорректно. Корзина: ${JSON.stringify(cart)}`);
+                }
+                
+                // Тест дубликатов
+                addToCart('test-product-1');
+                const cartAfterDuplicate = getCart();
+                if (cartAfterDuplicate.length === 1) {
+                    console.log('✅ addToCart() не добавляет дубликаты');
+                } else {
+                    console.log(`❌ addToCart() добавил дубликат. Корзина: ${JSON.stringify(cartAfterDuplicate)}`);
+                }
+            } catch (error) {
+                console.log(`❌ Ошибка в addToCart(): ${error.message}`);
+            }
+            
+            // Тест 5: updateCartCount()
+            console.log('\n🧪 Тест updateCartCount():');
+            try {
+                // Создаем элемент счетчика если его нет
+                if (!document.getElementById('cart-count')) {
+                    const countElement = document.createElement('span');
+                    countElement.id = 'cart-count';
+                    countElement.textContent = '0';
+                    document.body.appendChild(countElement);
+                    console.log('ℹ️ Создан элемент счетчика корзины');
+                }
+                
+                addToCart('count-test-1');
+                addToCart('count-test-2');
+                updateCartCount();
+                
+                const countElement = document.getElementById('cart-count');
+                if (countElement && countElement.textContent === '2') {
+                    console.log('✅ updateCartCount() обновляет счетчик');
+                } else {
+                    console.log(`❌ updateCartCount() обновил счетчик на: ${countElement ? countElement.textContent : 'элемент не найден'}`);
+                }
+            } catch (error) {
+                console.log(`❌ Ошибка в updateCartCount(): ${error.message}`);
+            }
+            
+            // Тест 6: Проверка localStorage
+            console.log('\n🧪 Тест localStorage:');
+            try {
+                const testData = ['localStorage-test'];
+                localStorage.setItem('cart', JSON.stringify(testData));
+                const stored = localStorage.getItem('cart');
+                if (stored === JSON.stringify(testData)) {
+                    console.log('✅ localStorage работает корректно');
+                } else {
+                    console.log(`❌ localStorage не работает. Сохранено: ${stored}, ожидалось: ${JSON.stringify(testData)}`);
+                }
+            } catch (error) {
+                console.log(`❌ Ошибка в localStorage: ${error.message}`);
+            }
+            
+            // Тест 7: Проверка обработчика событий
+            console.log('\n🧪 Тест обработчика событий:');
+            try {
+                // Создаем тестовую кнопку
+                const testButton = document.createElement('button');
+                testButton.className = 'add-to-cart-btn';
+                testButton.setAttribute('data-product-id', 'event-test');
+                testButton.textContent = 'Тестовая кнопка';
+                document.body.appendChild(testButton);
+                
+                // Симулируем клик
+                testButton.click();
+                
+                const cart = getCart();
+                if (cart.includes('event-test')) {
+                    console.log('✅ Обработчик событий работает');
+                } else {
+                    console.log(`❌ Обработчик событий не сработал. Корзина: ${JSON.stringify(cart)}`);
+                }
+                
+                // Удаляем тестовую кнопку
+                testButton.remove();
+            } catch (error) {
+                console.log(`❌ Ошибка в обработчике событий: ${error.message}`);
+            }
+            
+            console.log('\n🎉 Тестирование завершено!');
+            console.log('\n📊 Для детального тестирования откройте:');
+            console.log('- debug_cart.html - для интерактивной отладки');
+            console.log('- test_cart_frontend.html - для полного набора тестов');
+            console.log('- test_cart_unit.html - для unit-тестов в консоли');
+        }
+        
+        // Автоматическая проверка при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 Страница загружена. Готов к тестированию!');
+            console.log('Нажмите "Запустить тесты" для начала проверки функций корзины.');
+        });
+    </script>
+</body>
+</html>

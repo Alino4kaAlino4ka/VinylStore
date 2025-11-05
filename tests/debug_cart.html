@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отладка функций корзины</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .debug-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .debug-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
+        
+        .debug-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        
+        .debug-output {
+            background-color: #000;
+            color: #0f0;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .info {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+        
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>🔍 Отладка функций корзины</h1>
+        
+        <div class="debug-section">
+            <h3>📋 Проверка подключения скриптов</h3>
+            <div id="script-check"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h3>🧪 Тестирование функций</h3>
+            <div>
+                <button onclick="testGetCart()">Тест getCart()</button>
+                <button onclick="testSaveCart()">Тест saveCart()</button>
+                <button onclick="testAddToCart()">Тест addToCart()</button>
+                <button onclick="testUpdateCartCount()">Тест updateCartCount()</button>
+                <button onclick="runAllDebugTests()">Запустить все тесты</button>
+                <button onclick="clearDebugOutput()">Очистить вывод</button>
+            </div>
+            <div class="debug-output" id="debug-output"></div>
+        </div>
+        
+        <div class="debug-section">
+            <h3>🛒 Тестовая корзина</h3>
+            <div>
+                <button class="add-to-cart-btn" data-product-id="debug-1">Добавить товар 1</button>
+                <button class="add-to-cart-btn" data-product-id="debug-2">Добавить товар 2</button>
+                <button class="add-to-cart-btn" data-product-id="debug-3">Добавить товар 3</button>
+            </div>
+            <div>
+                <strong>Счетчик корзины:</strong> <span id="cart-count">0</span>
+            </div>
+            <div>
+                <strong>Содержимое корзины:</strong> <span id="cart-content">Пусто</span>
+            </div>
+        </div>
+        
+        <div class="debug-section">
+            <h3>📊 Результаты тестирования</h3>
+            <div id="test-results"></div>
+        </div>
+    </div>
+
+    <!-- Подключаем основной скрипт -->
+    <script src="src/scripts/script.js"></script>
+    
+    <script>
+        let debugOutput = document.getElementById('debug-output');
+        let testResults = [];
+        
+        // Функция для вывода в консоль отладки
+        function debugLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `[${timestamp}] <span class="${type}">${message}</span>`;
+            debugOutput.appendChild(logEntry);
+            debugOutput.scrollTop = debugOutput.scrollHeight;
+        }
+        
+        // Функция для очистки вывода
+        function clearDebugOutput() {
+            debugOutput.innerHTML = '';
+        }
+        
+        // Проверка подключения скриптов
+        function checkScripts() {
+            const scriptCheck = document.getElementById('script-check');
+            let html = '<div class="test-item">';
+            
+            // Проверяем наличие функций
+            const functions = ['getCart', 'saveCart', 'addToCart', 'updateCartCount'];
+            let allFound = true;
+            
+            functions.forEach(func => {
+                if (typeof window[func] === 'function') {
+                    html += `<div class="success">✅ ${func}() - найдена</div>`;
+                } else {
+                    html += `<div class="error">❌ ${func}() - не найдена</div>`;
+                    allFound = false;
+                }
+            });
+            
+            html += '</div>';
+            
+            if (allFound) {
+                html += '<div class="success">🎉 Все функции корзины найдены!</div>';
+            } else {
+                html += '<div class="error">⚠️ Некоторые функции не найдены. Проверьте подключение script.js</div>';
+            }
+            
+            scriptCheck.innerHTML = html;
+        }
+        
+        // Тест getCart()
+        function testGetCart() {
+            debugLog('🧪 Тестирование getCart()...', 'info');
+            
+            try {
+                // Очищаем корзину
+                localStorage.removeItem('cart');
+                
+                // Тест с пустой корзиной
+                const emptyCart = getCart();
+                if (Array.isArray(emptyCart) && emptyCart.length === 0) {
+                    debugLog('✅ getCart() возвращает пустой массив для новой корзины', 'success');
+                } else {
+                    debugLog(`❌ getCart() вернул: ${JSON.stringify(emptyCart)}`, 'error');
+                }
+                
+                // Тест с данными
+                const testData = ['item1', 'item2'];
+                localStorage.setItem('cart', JSON.stringify(testData));
+                const cart = getCart();
+                if (JSON.stringify(cart) === JSON.stringify(testData)) {
+                    debugLog('✅ getCart() корректно возвращает сохраненные данные', 'success');
+                } else {
+                    debugLog(`❌ getCart() вернул: ${JSON.stringify(cart)}, ожидалось: ${JSON.stringify(testData)}`, 'error');
+                }
+                
+            } catch (error) {
+                debugLog(`❌ Ошибка в getCart(): ${error.message}`, 'error');
+            }
+        }
+        
+        // Тест saveCart()
+        function testSaveCart() {
+            debugLog('🧪 Тестирование saveCart()...', 'info');
+            
+            try {
+                const testCart = ['product1', 'product2', 'product3'];
+                saveCart(testCart);
+                
+                const stored = localStorage.getItem('cart');
+                if (stored === JSON.stringify(testCart)) {
+                    debugLog('✅ saveCart() корректно сохраняет данные в localStorage', 'success');
+                } else {
+                    debugLog(`❌ saveCart() сохранил: ${stored}, ожидалось: ${JSON.stringify(testCart)}`, 'error');
+                }
+                
+            } catch (error) {
+                debugLog(`❌ Ошибка в saveCart(): ${error.message}`, 'error');
+            }
+        }
+        
+        // Тест addToCart()
+        function testAddToCart() {
+            debugLog('🧪 Тестирование addToCart()...', 'info');
+            
+            try {
+                // Очищаем корзину
+                localStorage.removeItem('cart');
+                
+                // Тест добавления товара
+                addToCart('test-product-1');
+                const cart = getCart();
+                if (cart.includes('test-product-1') && cart.length === 1) {
+                    debugLog('✅ addToCart() корректно добавляет товар', 'success');
+                } else {
+                    debugLog(`❌ addToCart() добавил товар некорректно. Корзина: ${JSON.stringify(cart)}`, 'error');
+                }
+                
+                // Тест дубликатов
+                addToCart('test-product-1');
+                const cartAfterDuplicate = getCart();
+                if (cartAfterDuplicate.length === 1) {
+                    debugLog('✅ addToCart() не добавляет дубликаты', 'success');
+                } else {
+                    debugLog(`❌ addToCart() добавил дубликат. Корзина: ${JSON.stringify(cartAfterDuplicate)}`, 'error');
+                }
+                
+            } catch (error) {
+                debugLog(`❌ Ошибка в addToCart(): ${error.message}`, 'error');
+            }
+        }
+        
+        // Тест updateCartCount()
+        function testUpdateCartCount() {
+            debugLog('🧪 Тестирование updateCartCount()...', 'info');
+            
+            try {
+                // Добавляем товары
+                addToCart('count-test-1');
+                addToCart('count-test-2');
+                
+                updateCartCount();
+                
+                const countElement = document.getElementById('cart-count');
+                if (countElement && countElement.textContent === '2') {
+                    debugLog('✅ updateCartCount() корректно обновляет счетчик', 'success');
+                } else {
+                    debugLog(`❌ updateCartCount() обновил счетчик на: ${countElement ? countElement.textContent : 'элемент не найден'}`, 'error');
+                }
+                
+            } catch (error) {
+                debugLog(`❌ Ошибка в updateCartCount(): ${error.message}`, 'error');
+            }
+        }
+        
+        // Запуск всех тестов
+        function runAllDebugTests() {
+            debugLog('🚀 Запуск всех тестов отладки...', 'info');
+            clearDebugOutput();
+            
+            testGetCart();
+            testSaveCart();
+            testAddToCart();
+            testUpdateCartCount();
+            
+            debugLog('🎉 Все тесты завершены!', 'success');
+        }
+        
+        // Обновление отображения корзины
+        function updateCartDisplay() {
+            const cart = getCart();
+            const cartContent = document.getElementById('cart-content');
+            const cartCount = document.getElementById('cart-count');
+            
+            if (cart.length === 0) {
+                cartContent.textContent = 'Пусто';
+            } else {
+                cartContent.textContent = cart.join(', ');
+            }
+            
+            if (cartCount) {
+                cartCount.textContent = cart.length;
+            }
+        }
+        
+        // Обработчик кликов по кнопкам добавления в корзину
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('add-to-cart-btn')) {
+                const productId = event.target.getAttribute('data-product-id');
+                if (productId) {
+                    debugLog(`🖱️ Клик по кнопке добавления товара: ${productId}`, 'info');
+                    addToCart(productId);
+                    updateCartDisplay();
+                }
+            }
+        });
+        
+        // Инициализация при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            debugLog('📄 Страница загружена, начинаем отладку...', 'info');
+            checkScripts();
+            updateCartDisplay();
+        });
+    </script>
+</body>
+</html>

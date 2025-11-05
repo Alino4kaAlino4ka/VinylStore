@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест сервисов</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .service { margin: 10px 0; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .loading { background-color: #fff3cd; border-color: #ffeaa7; }
+    </style>
+</head>
+<body>
+    <h1>Тест сервисов</h1>
+    <div id="results"></div>
+    
+    <script>
+        const services = [
+            { name: 'Catalog Service', url: 'http://localhost:8000/health', port: 8000 },
+            { name: 'Cart Service', url: 'http://localhost:8001/health', port: 8001 },
+            { name: 'Orders Service', url: 'http://localhost:8002/health', port: 8002 },
+            { name: 'Users Service', url: 'http://localhost:8003/health', port: 8003 },
+            { name: 'Recommender Service', url: 'http://localhost:8004/health', port: 8004 },
+            { name: 'Auth Service', url: 'http://localhost:8005/health', port: 8005 }
+        ];
+        
+        async function testService(service) {
+            const div = document.createElement('div');
+            div.className = 'service loading';
+            div.innerHTML = `🔄 Тестирование ${service.name} (порт ${service.port})...`;
+            document.getElementById('results').appendChild(div);
+            
+            try {
+                const response = await fetch(service.url);
+                if (response.ok) {
+                    const data = await response.json();
+                    div.className = 'service success';
+                    div.innerHTML = `✅ ${service.name} (порт ${service.port}) - OK: ${data.status || 'Running'}`;
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                div.className = 'service error';
+                div.innerHTML = `❌ ${service.name} (порт ${service.port}) - ERROR: ${error.message}`;
+            }
+        }
+        
+        async function testAllServices() {
+            for (const service of services) {
+                await testService(service);
+                await new Promise(resolve => setTimeout(resolve, 500)); // Задержка между запросами
+            }
+        }
+        
+        // Запускаем тесты при загрузке страницы
+        testAllServices();
+    </script>
+</body>
+</html>

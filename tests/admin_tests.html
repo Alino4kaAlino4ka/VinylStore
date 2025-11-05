@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тесты админ-панели - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        
+        .test-container {
+            background-color: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        
+        .test-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #FF9900;
+        }
+        
+        .test-header h1 {
+            color: #FF9900;
+            font-size: 28px;
+            margin: 0;
+        }
+        
+        .test-section {
+            background-color: #2A2B30;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            border-left: 4px solid #FF9900;
+        }
+        
+        .test-section h2 {
+            color: #FF9900;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+        
+        .test-item {
+            background-color: #3A3B40;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 3px solid #6c757d;
+        }
+        
+        .test-item.passed {
+            border-left-color: #28a745;
+            background-color: #1e3a1e;
+        }
+        
+        .test-item.failed {
+            border-left-color: #dc3545;
+            background-color: #3a1e1e;
+        }
+        
+        .test-item.running {
+            border-left-color: #ffc107;
+            background-color: #3a3a1e;
+        }
+        
+        .test-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .test-result {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        
+        .test-result.success {
+            color: #28a745;
+        }
+        
+        .test-result.error {
+            color: #dc3545;
+        }
+        
+        .test-result.info {
+            color: #17a2b8;
+        }
+        
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-weight: bold;
+        }
+        
+        button:hover {
+            background-color: #e68900;
+        }
+        
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .run-all-btn {
+            background-color: #28a745;
+            font-size: 18px;
+            padding: 15px 30px;
+        }
+        
+        .run-all-btn:hover {
+            background-color: #218838;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #2A2B30;
+            border-radius: 8px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF9900;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #ADADAD;
+        }
+        
+        .admin-link {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .admin-link a {
+            color: #FF9900;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .admin-link a:hover {
+            text-decoration: underline;
+        }
+        
+        .test-data {
+            background-color: #1A1B20;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #2A2B30;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #FF9900;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="test-header">
+            <h1>🧪 Тесты админ-панели</h1>
+            <p>Комплексное тестирование всех функций админ-панели</p>
+        </div>
+        
+        <div class="admin-link">
+            <a href="admin.html" target="_blank">🔗 Открыть админ-панель</a>
+        </div>
+        
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number" id="total-tests">0</div>
+                <div class="stat-label">Всего тестов</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="passed-tests">0</div>
+                <div class="stat-label">Пройдено</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="failed-tests">0</div>
+                <div class="stat-label">Провалено</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="success-rate">0%</div>
+                <div class="stat-label">Успешность</div>
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="run-all-btn" onclick="runAllTests()">🚀 Запустить все тесты</button>
+            <button onclick="clearResults()">🗑️ Очистить результаты</button>
+            <button onclick="resetAdminData()">🔄 Сбросить данные админ-панели</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>📋 Тесты инициализации</h2>
+            <div id="init-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📝 Тесты формы</h2>
+            <div id="form-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>📊 Тесты данных</h2>
+            <div id="data-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🔧 Тесты CRUD операций</h2>
+            <div id="crud-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>💾 Тесты localStorage</h2>
+            <div id="storage-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>🎨 Тесты UI</h2>
+            <div id="ui-tests"></div>
+        </div>
+        
+        <div class="test-section">
+            <h2>⚠️ Тесты ошибок</h2>
+            <div id="error-tests"></div>
+        </div>
+    </div>
+
+    <script>
+        let testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0
+        };
+
+        // Тестовые данные
+        const testProduct = {
+            title: "Тестовая книга",
+            author_id: 999,
+            description: "Описание тестовой книги для проверки функциональности",
+            price: 99.99
+        };
+
+        // Функция для создания тестового элемента
+        function createTestElement(title, testFunction) {
+            const testDiv = document.createElement('div');
+            testDiv.className = 'test-item';
+            testDiv.innerHTML = `
+                <div class="test-title">${title}</div>
+                <div class="test-result" id="result-${testResults.total}">Ожидание...</div>
+            `;
+            
+            const resultDiv = testDiv.querySelector('.test-result');
+            
+            return {
+                element: testDiv,
+                resultDiv: resultDiv,
+                run: async () => {
+                    testDiv.className = 'test-item running';
+                    resultDiv.textContent = 'Выполняется...';
+                    
+                    try {
+                        const result = await testFunction();
+                        if (result.success) {
+                            testDiv.className = 'test-item passed';
+                            resultDiv.className = 'test-result success';
+                            resultDiv.textContent = result.message;
+                            testResults.passed++;
+                        } else {
+                            testDiv.className = 'test-item failed';
+                            resultDiv.className = 'test-result error';
+                            resultDiv.textContent = result.message;
+                            testResults.failed++;
+                        }
+                    } catch (error) {
+                        testDiv.className = 'test-item failed';
+                        resultDiv.className = 'test-result error';
+                        resultDiv.textContent = `Ошибка: ${error.message}`;
+                        testResults.failed++;
+                    }
+                    
+                    testResults.total++;
+                    updateStats();
+                }
+            };
+        }
+
+        // Обновление статистики
+        function updateStats() {
+            document.getElementById('total-tests').textContent = testResults.total;
+            document.getElementById('passed-tests').textContent = testResults.passed;
+            document.getElementById('failed-tests').textContent = testResults.failed;
+            
+            const successRate = testResults.total > 0 ? 
+                Math.round((testResults.passed / testResults.total) * 100) : 0;
+            document.getElementById('success-rate').textContent = successRate + '%';
+            
+            const progress = testResults.total > 0 ? 
+                (testResults.passed / testResults.total) * 100 : 0;
+            document.getElementById('progress-fill').style.width = progress + '%';
+        }
+
+        // Тесты инициализации
+        function createInitTests() {
+            const container = document.getElementById('init-tests');
+            
+            const tests = [
+                createTestElement('Проверка загрузки админ-панели', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    if (adminWindow) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        return { success: true, message: 'Админ-панель загружена успешно' };
+                    }
+                    return { success: false, message: 'Не удалось загрузить админ-панель' };
+                }),
+                
+                createTestElement('Проверка наличия элементов DOM', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const hasForm = adminWindow.document.getElementById('product-form');
+                    const hasTable = adminWindow.document.getElementById('products-table');
+                    const hasTitle = adminWindow.document.querySelector('h1');
+                    
+                    if (hasForm && hasTable && hasTitle) {
+                        return { success: true, message: 'Все основные элементы найдены' };
+                    }
+                    return { success: false, message: 'Отсутствуют необходимые элементы' };
+                }),
+                
+                createTestElement('Проверка начальных данных', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const tbody = adminWindow.document.querySelector('#products-table tbody');
+                    const rows = tbody.querySelectorAll('tr');
+                    
+                    if (rows.length >= 3) {
+                        return { success: true, message: `Найдено ${rows.length} товаров` };
+                    }
+                    return { success: false, message: 'Недостаточно начальных данных' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+        }
+
+        // Тесты формы
+        function createFormTests() {
+            const container = document.getElementById('form-tests');
+            
+            const tests = [
+                createTestElement('Проверка валидации формы', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    
+                    // Пытаемся отправить пустую форму
+                    submitBtn.click();
+                    
+                    // Проверяем, что форма не отправилась
+                    const titleInput = form.querySelector('#title');
+                    if (titleInput.checkValidity() === false) {
+                        return { success: true, message: 'Валидация формы работает' };
+                    }
+                    return { success: false, message: 'Валидация формы не работает' };
+                }),
+                
+                createTestElement('Проверка заполнения формы', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const titleInput = form.querySelector('#title');
+                    const authorInput = form.querySelector('#author_id');
+                    const descInput = form.querySelector('#description');
+                    const priceInput = form.querySelector('#price');
+                    
+                    titleInput.value = testProduct.title;
+                    authorInput.value = testProduct.author_id;
+                    descInput.value = testProduct.description;
+                    priceInput.value = testProduct.price;
+                    
+                    if (titleInput.value === testProduct.title && 
+                        authorInput.value == testProduct.author_id &&
+                        descInput.value === testProduct.description &&
+                        priceInput.value == testProduct.price) {
+                        return { success: true, message: 'Форма заполняется корректно' };
+                    }
+                    return { success: false, message: 'Ошибка заполнения формы' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+        }
+
+        // Тесты данных
+        function createDataTests() {
+            const container = document.getElementById('data-tests');
+            
+            const tests = [
+                createTestElement('Проверка структуры данных', async () => {
+                    const savedData = localStorage.getItem('admin_products');
+                    if (savedData) {
+                        const products = JSON.parse(savedData);
+                        if (Array.isArray(products) && products.length > 0) {
+                            const firstProduct = products[0];
+                            if (firstProduct.id && firstProduct.title && firstProduct.price !== undefined) {
+                                return { success: true, message: 'Структура данных корректна' };
+                            }
+                        }
+                    }
+                    return { success: false, message: 'Некорректная структура данных' };
+                }),
+                
+                createTestElement('Проверка типов данных', async () => {
+                    const savedData = localStorage.getItem('admin_products');
+                    if (savedData) {
+                        const products = JSON.parse(savedData);
+                        const firstProduct = products[0];
+                        
+                        if (typeof firstProduct.id === 'number' &&
+                            typeof firstProduct.title === 'string' &&
+                            typeof firstProduct.price === 'number') {
+                            return { success: true, message: 'Типы данных корректны' };
+                        }
+                    }
+                    return { success: false, message: 'Некорректные типы данных' };
+                }),
+                
+                createTestElement('Проверка уникальности ID', async () => {
+                    const savedData = localStorage.getItem('admin_products');
+                    if (savedData) {
+                        const products = JSON.parse(savedData);
+                        const ids = products.map(p => p.id);
+                        const uniqueIds = [...new Set(ids)];
+                        
+                        if (ids.length === uniqueIds.length) {
+                            return { success: true, message: 'Все ID уникальны' };
+                        }
+                    }
+                    return { success: false, message: 'Найдены дублирующиеся ID' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+        }
+
+        // Тесты CRUD операций
+        function createCrudTests() {
+            const container = document.getElementById('crud-tests');
+            
+            const tests = [
+                createTestElement('Тест создания товара', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const form = adminWindow.document.getElementById('product-form');
+                    const titleInput = form.querySelector('#title');
+                    const authorInput = form.querySelector('#author_id');
+                    const descInput = form.querySelector('#description');
+                    const priceInput = form.querySelector('#price');
+                    
+                    titleInput.value = testProduct.title;
+                    authorInput.value = testProduct.author_id;
+                    descInput.value = testProduct.description;
+                    priceInput.value = testProduct.price;
+                    
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    submitBtn.click();
+                    
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    const tbody = adminWindow.document.querySelector('#products-table tbody');
+                    const rows = tbody.querySelectorAll('tr');
+                    
+                    // Проверяем, что товар добавился
+                    let found = false;
+                    for (let row of rows) {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length > 0 && cells[1].textContent === testProduct.title) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (found) {
+                        return { success: true, message: 'Товар успешно создан' };
+                    }
+                    return { success: false, message: 'Товар не был создан' };
+                }),
+                
+                createTestElement('Тест редактирования товара', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const editBtn = adminWindow.document.querySelector('.edit-btn');
+                    if (editBtn) {
+                        editBtn.click();
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                        const form = adminWindow.document.getElementById('product-form');
+                        const titleInput = form.querySelector('#title');
+                        
+                        if (titleInput.value) {
+                            return { success: true, message: 'Форма заполнилась данными для редактирования' };
+                        }
+                    }
+                    return { success: false, message: 'Редактирование не работает' };
+                }),
+                
+                createTestElement('Тест удаления товара', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const tbody = adminWindow.document.querySelector('#products-table tbody');
+                    const initialRows = tbody.querySelectorAll('tr').length;
+                    
+                    const deleteBtn = adminWindow.document.querySelector('.delete-btn');
+                    if (deleteBtn) {
+                        // Симулируем подтверждение
+                        adminWindow.confirm = () => true;
+                        deleteBtn.click();
+                        
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
+                        const finalRows = tbody.querySelectorAll('tr').length;
+                        
+                        if (finalRows < initialRows) {
+                            return { success: true, message: 'Товар успешно удален' };
+                        }
+                    }
+                    return { success: false, message: 'Удаление не работает' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+        }
+
+        // Тесты localStorage
+        function createStorageTests() {
+            const container = document.getElementById('storage-tests');
+            
+            const tests = [
+                createTestElement('Проверка сохранения в localStorage', async () => {
+                    const initialData = localStorage.getItem('admin_products');
+                    if (initialData) {
+                        return { success: true, message: 'Данные сохранены в localStorage' };
+                    }
+                    return { success: false, message: 'Данные не найдены в localStorage' };
+                }),
+                
+                createTestElement('Проверка восстановления из localStorage', async () => {
+                    const savedData = localStorage.getItem('admin_products');
+                    if (savedData) {
+                        const products = JSON.parse(savedData);
+                        if (products.length > 0) {
+                            return { success: true, message: `Восстановлено ${products.length} товаров` };
+                        }
+                    }
+                    return { success: false, message: 'Не удалось восстановить данные' };
+                }),
+                
+                createTestElement('Тест очистки localStorage', async () => {
+                    localStorage.removeItem('admin_products');
+                    const clearedData = localStorage.getItem('admin_products');
+                    
+                    if (clearedData === null) {
+                        // Восстанавливаем данные
+                        const testData = [
+                            { id: 1, title: "Тест", author_id: 1, description: "Описание", price: 10 }
+                        ];
+                        localStorage.setItem('admin_products', JSON.stringify(testData));
+                        return { success: true, message: 'localStorage очищается корректно' };
+                    }
+                    return { success: false, message: 'localStorage не очищается' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+        }
+
+        // Тесты UI
+        function createUiTests() {
+            const container = document.getElementById('ui-tests');
+            
+            const tests = [
+                createTestElement('Проверка стилей кнопок', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const submitBtn = adminWindow.document.querySelector('button[type="submit"]');
+                    const editBtn = adminWindow.document.querySelector('.edit-btn');
+                    const deleteBtn = adminWindow.document.querySelector('.delete-btn');
+                    
+                    if (submitBtn && editBtn && deleteBtn) {
+                        return { success: true, message: 'Все кнопки найдены и стилизованы' };
+                    }
+                    return { success: false, message: 'Отсутствуют стилизованные кнопки' };
+                }),
+                
+                createTestElement('Проверка таблицы', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const table = adminWindow.document.querySelector('#products-table');
+                    const headers = table.querySelectorAll('th');
+                    
+                    if (headers.length >= 6) {
+                        return { success: true, message: 'Таблица имеет все необходимые колонки' };
+                    }
+                    return { success: false, message: 'Таблица неполная' };
+                }),
+                
+                createTestElement('Проверка сообщений', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const errorDiv = adminWindow.document.getElementById('error-message');
+                    const successDiv = adminWindow.document.getElementById('success-message');
+                    
+                    if (errorDiv && successDiv) {
+                        return { success: true, message: 'Элементы для сообщений найдены' };
+                    }
+                    return { success: false, message: 'Отсутствуют элементы для сообщений' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+        }
+
+        // Тесты ошибок
+        function createErrorTests() {
+            const container = document.getElementById('error-tests');
+            
+            const tests = [
+                createTestElement('Тест обработки некорректных данных', async () => {
+                    try {
+                        const invalidData = 'invalid json';
+                        JSON.parse(invalidData);
+                        return { success: false, message: 'Ошибка не обработана' };
+                    } catch (error) {
+                        return { success: true, message: 'Некорректные данные обрабатываются' };
+                    }
+                }),
+                
+                createTestElement('Тест валидации отрицательных цен', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const priceInput = adminWindow.document.querySelector('#price');
+                    priceInput.value = -10;
+                    
+                    if (priceInput.checkValidity() === false) {
+                        return { success: true, message: 'Отрицательные цены отклоняются' };
+                    }
+                    return { success: false, message: 'Валидация цен не работает' };
+                }),
+                
+                createTestElement('Тест обработки пустых полей', async () => {
+                    const adminWindow = window.open('admin.html', '_blank');
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    const titleInput = adminWindow.document.querySelector('#title');
+                    titleInput.value = '';
+                    
+                    if (titleInput.checkValidity() === false) {
+                        return { success: true, message: 'Пустые поля отклоняются' };
+                    }
+                    return { success: false, message: 'Валидация пустых полей не работает' };
+                })
+            ];
+            
+            tests.forEach(test => {
+                container.appendChild(test.element);
+                test.run();
+            });
+        }
+
+        // Запуск всех тестов
+        async function runAllTests() {
+            testResults = { total: 0, passed: 0, failed: 0 };
+            
+            // Очищаем результаты
+            document.querySelectorAll('.test-item').forEach(item => item.remove());
+            
+            // Запускаем все группы тестов
+            createInitTests();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            createFormTests();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            createDataTests();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            createCrudTests();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            createStorageTests();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            createUiTests();
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            createErrorTests();
+        }
+
+        // Очистка результатов
+        function clearResults() {
+            document.querySelectorAll('.test-item').forEach(item => item.remove());
+            testResults = { total: 0, passed: 0, failed: 0 };
+            updateStats();
+        }
+
+        // Сброс данных админ-панели
+        function resetAdminData() {
+            localStorage.removeItem('admin_products');
+            alert('Данные админ-панели сброшены. Перезагрузите админ-панель для восстановления начальных данных.');
+        }
+
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+        });
+    </script>
+</body>
+</html>

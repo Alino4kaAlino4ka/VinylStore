@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест поиска - Audio Store</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .search-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .search-input {
+            width: 100%;
+            padding: 15px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: #FF9900;
+        }
+        .filters {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .filter-group label {
+            font-weight: bold;
+            color: #333;
+        }
+        .filter-select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #FF9900;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn:hover {
+            opacity: 0.8;
+        }
+        .results-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: none;
+        }
+        .catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .book-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            background: white;
+            transition: transform 0.2s;
+        }
+        .book-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .book-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .book-author {
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .book-description {
+            color: #777;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .book-price {
+            font-size: 16px;
+            font-weight: bold;
+            color: #FF9900;
+            margin-bottom: 10px;
+        }
+        .buy-btn {
+            width: 100%;
+            padding: 10px;
+            background-color: #FF9900;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .buy-btn:hover {
+            background-color: #e68900;
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 18px;
+        }
+        .pagination {
+            margin-top: 30px;
+            text-align: center;
+        }
+        .page-btn {
+            padding: 8px 12px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .page-btn:hover {
+            background-color: #f8f9fa;
+        }
+        .page-btn.active {
+            background-color: #FF9900;
+            color: white;
+            border-color: #FF9900;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Тест поиска по аудиокнигам</h1>
+        
+        <div class="search-section">
+            <input type="text" id="search-input" class="search-input" placeholder="Введите название книги, автора или описание...">
+            
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="genre-filter">Жанр:</label>
+                    <select id="genre-filter" class="filter-select">
+                        <option value="">Все жанры</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="author-filter">Автор:</label>
+                    <select id="author-filter" class="filter-select">
+                        <option value="">Все авторы</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label for="sort-filter">Сортировка:</label>
+                    <select id="sort-filter" class="filter-select">
+                        <option value="popular">По популярности</option>
+                        <option value="newest">По дате добавления</option>
+                        <option value="price-low">По цене (возрастание)</option>
+                        <option value="price-high">По цене (убывание)</option>
+                        <option value="rating">По рейтингу</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="buttons">
+                <button id="reset-filters" class="btn btn-secondary">Сбросить фильтры</button>
+                <button class="btn btn-primary" id="get-recommendations">🤖 Получить рекомендации</button>
+            </div>
+        </div>
+
+        <div id="search-info" class="results-info">
+            <!-- Информация о поиске будет добавлена динамически -->
+        </div>
+
+        <div id="catalog-grid" class="catalog-grid">
+            <!-- Результаты поиска будут загружены через JavaScript -->
+        </div>
+
+        <div id="pagination" class="pagination">
+            <!-- Пагинация будет создана через JavaScript -->
+        </div>
+    </div>
+
+    <script src="src/scripts/catalog.js"></script>
+    <script>
+        // Дополнительная инициализация для тестовой страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Тестовая страница поиска загружена');
+            
+            // Добавляем обработчик для Enter в поле поиска
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        console.log('Поиск по Enter:', this.value);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

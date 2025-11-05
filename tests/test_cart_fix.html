@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест исправления корзины</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .cart-display {
+            background-color: #e9ecef;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест исправления проблемы с корзиной</h1>
+    
+    <div class="test-section">
+        <h2>Проблема</h2>
+        <p>В корзине появлялись записи с ID "[object Object]" вместо корректных ID товаров.</p>
+        <p>Это происходило из-за неправильной передачи объектов в функцию addToCart.</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>Исправления</h2>
+        <ul>
+            <li>Исправлен вызов addToCart в catalog.js - теперь ID передается как строка</li>
+            <li>Добавлена нормализация ID в функции addToCart и addToCartWithQuantity</li>
+            <li>Добавлена проверка на некорректные ID типа "[object Object]"</li>
+            <li>Добавлена функция очистки некорректных записей из корзины</li>
+            <li>Улучшена функция миграции данных корзины</li>
+        </ul>
+    </div>
+    
+    <div class="test-section">
+        <h2>Тестирование</h2>
+        <button class="test-button" onclick="testNormalIds()">Тест с нормальными ID</button>
+        <button class="test-button" onclick="testObjectIds()">Тест с объектными ID</button>
+        <button class="test-button" onclick="testMixedIds()">Тест со смешанными ID</button>
+        <button class="test-button" onclick="testCartService()">Тест Cart Service</button>
+        <button class="test-button" onclick="testFixedProducts()">Тест исправленных товаров</button>
+        <button class="test-button" onclick="testMissingItems()">Тест отсутствующих товаров</button>
+        <button class="test-button" onclick="clearCart()">Очистить корзину</button>
+        <button class="test-button" onclick="showCart()">Показать корзину</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>Лог тестирования</h2>
+        <div id="test-log" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Содержимое корзины</h2>
+        <div id="cart-display" class="cart-display">Корзина пуста</div>
+    </div>
+
+    <script src="src/scripts/cart.js"></script>
+    <script>
+        // Функция для логирования
+        function log(message) {
+            const logElement = document.getElementById('test-log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        // Тест с нормальными ID
+        function testNormalIds() {
+            log('=== Тест с нормальными ID ===');
+            try {
+                addToCartWithQuantity('1');
+                addToCartWithQuantity('2');
+                addToCartWithQuantity('3');
+                log('Добавлены товары с ID: 1, 2, 3');
+                showCart();
+            } catch (error) {
+                log('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Тест с объектными ID (симуляция проблемы)
+        function testObjectIds() {
+            log('=== Тест с объектными ID ===');
+            try {
+                // Симулируем передачу объекта вместо строки
+                const fakeObject = { id: 'test', name: 'Test Product' };
+                addToCartWithQuantity(fakeObject);
+                log('Попытка добавить объект: ' + JSON.stringify(fakeObject));
+                showCart();
+            } catch (error) {
+                log('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Тест со смешанными ID
+        function testMixedIds() {
+            log('=== Тест со смешанными ID ===');
+            try {
+                addToCartWithQuantity('4');
+                addToCartWithQuantity(5); // число
+                addToCartWithQuantity(null); // null
+                addToCartWithQuantity(undefined); // undefined
+                log('Добавлены товары с разными типами ID');
+                showCart();
+            } catch (error) {
+                log('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Тест Cart Service
+        async function testCartService() {
+            log('=== Тест Cart Service ===');
+            try {
+                // Добавляем товары, которые есть в Cart Service
+                addToCartWithQuantity('3');
+                addToCartWithQuantity('5');
+                addToCartWithQuantity('21');
+                log('Добавлены товары: 3, 5, 21');
+                
+                // Ждем немного и показываем корзину
+                setTimeout(() => {
+                    showCart();
+                    loadCart();
+                }, 1000);
+            } catch (error) {
+                log('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Тест исправленных товаров
+        async function testFixedProducts() {
+            log('=== Тест исправленных товаров ===');
+            try {
+                // Добавляем товары, которые раньше не работали
+                addToCartWithQuantity('8');  // Игра престолов
+                addToCartWithQuantity('12'); // Танец с драконами
+                addToCartWithQuantity('13'); // Властелин колец
+                addToCartWithQuantity('1');  // Гарри Поттер
+                log('Добавлены товары: 8, 12, 13, 1');
+                
+                // Ждем немного и показываем корзину
+                setTimeout(() => {
+                    showCart();
+                    loadCart();
+                }, 1000);
+            } catch (error) {
+                log('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Тест отсутствующих товаров
+        function testMissingItems() {
+            log('=== Тест отсутствующих товаров ===');
+            try {
+                addToCartWithQuantity('999'); // несуществующий ID
+                addToCartWithQuantity('888'); // несуществующий ID
+                addToCartWithQuantity('3');   // существующий ID
+                log('Добавлены товары: 999 (несуществующий), 888 (несуществующий), 3 (существующий)');
+                showCart();
+            } catch (error) {
+                log('Ошибка: ' + error.message);
+            }
+        }
+        
+        // Показать содержимое корзины
+        function showCart() {
+            const cart = getCartWithQuantity();
+            const cartDisplay = document.getElementById('cart-display');
+            
+            if (Object.keys(cart).length === 0) {
+                cartDisplay.textContent = 'Корзина пуста';
+            } else {
+                let cartText = 'Содержимое корзины:\n';
+                Object.keys(cart).forEach(id => {
+                    cartText += `ID: "${id}" (тип: ${typeof id}), количество: ${cart[id]}\n`;
+                });
+                cartDisplay.textContent = cartText;
+            }
+            
+            log('Корзина обновлена. Количество товаров: ' + Object.keys(cart).length);
+        }
+        
+        // Очистить корзину
+        function clearCart() {
+            localStorage.removeItem('cart');
+            localStorage.removeItem('cartWithQuantity');
+            log('Корзина очищена');
+            showCart();
+        }
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Тестовая страница загружена');
+            showCart();
+        });
+    </script>
+</body>
+</html>

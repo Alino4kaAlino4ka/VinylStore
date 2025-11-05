@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Демо AI-рекомендаций</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        .status {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .demo-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        .demo-section h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .book-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .book-item h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .book-item p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .confidence {
+            font-weight: bold;
+            color: #28a745;
+        }
+        .loading {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+        }
+        .urls {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .urls h4 {
+            margin-top: 0;
+        }
+        .urls a {
+            color: #007bff;
+            text-decoration: none;
+            display: block;
+            margin: 5px 0;
+        }
+        .urls a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Демо AI-сервиса рекомендаций</h1>
+        
+        <div id="status" class="status info">
+            Проверяем состояние сервисов...
+        </div>
+
+        <div class="urls">
+            <h4>🔗 Ссылки на сервисы:</h4>
+            <a href="http://127.0.0.1:8000" target="_blank">📚 Каталог (порт 8000)</a>
+            <a href="http://127.0.0.1:8004" target="_blank">🤖 Рекомендации (порт 8004)</a>
+            <a href="http://127.0.0.1:8004/health" target="_blank">❤️ Health Check рекомендаций</a>
+            <a href="http://127.0.0.1:8000/api/v1/products" target="_blank">📋 API каталога</a>
+        </div>
+
+        <div class="demo-section">
+            <h3>🧪 Тест подключения к каталогу</h3>
+            <button onclick="testCatalog()">Проверить каталог</button>
+            <div id="catalogResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>🤖 Тест AI-рекомендаций</h3>
+            <button onclick="testRecommendations()">Получить рекомендации</button>
+            <div id="recommendationResult"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>📊 Полный тест системы</h3>
+            <button onclick="runFullTest()">Запустить полный тест</button>
+            <div id="fullTestResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // Проверяем состояние сервисов при загрузке
+        window.onload = function() {
+            checkServices();
+        };
+
+        async function checkServices() {
+            const statusDiv = document.getElementById('status');
+            
+            try {
+                // Проверяем каталог
+                const catalogResponse = await fetch('http://127.0.0.1:8000/health');
+                const catalogOk = catalogResponse.ok;
+                
+                // Проверяем рекомендации
+                let recommendationsOk = false;
+                try {
+                    const recResponse = await fetch('http://127.0.0.1:8004/health');
+                    recommendationsOk = recResponse.ok;
+                } catch (e) {
+                    recommendationsOk = false;
+                }
+                
+                if (catalogOk && recommendationsOk) {
+                    statusDiv.className = 'status success';
+                    statusDiv.textContent = '✅ Все сервисы работают!';
+                } else if (catalogOk) {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '⚠️ Каталог работает, но рекомендации недоступны';
+                } else {
+                    statusDiv.className = 'status error';
+                    statusDiv.textContent = '❌ Сервисы не запущены';
+                }
+            } catch (error) {
+                statusDiv.className = 'status error';
+                statusDiv.textContent = '❌ Ошибка при проверке сервисов: ' + error.message;
+            }
+        }
+
+        async function testCatalog() {
+            const resultDiv = document.getElementById('catalogResult');
+            resultDiv.innerHTML = '<div class="loading">🔄 Загружаем каталог...</div>';
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/v1/products');
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="result">
+                            <h4>✅ Каталог работает!</h4>
+                            <p><strong>Найдено книг:</strong> ${data.products ? data.products.length : 0}</p>
+                            <p><strong>Примеры книг:</strong></p>
+                            ${data.products ? data.products.slice(0, 3).map(book => 
+                                `<div class="book-item">
+                                    <h4>${book.name}</h4>
+                                    <p><strong>Автор:</strong> ${book.author}</p>
+                                    <p><strong>Цена:</strong> ${book.price}₽</p>
+                                </div>`
+                            ).join('') : '<p>Нет данных</p>'}
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="result"><h4>❌ Ошибка каталога</h4><p>Код: ${response.status}</p></div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result"><h4>❌ Ошибка подключения</h4><p>${error.message}</p></div>`;
+            }
+        }
+
+        async function testRecommendations() {
+            const resultDiv = document.getElementById('recommendationResult');
+            resultDiv.innerHTML = '<div class="loading">🤖 AI генерирует рекомендации...</div>';
+            
+            try {
+                const requestData = {
+                    user_preferences: "Люблю классическую литературу и фантастику",
+                    current_books: [1, 2],
+                    genre_preferences: ["классика", "фантастика"],
+                    max_recommendations: 3
+                };
+                
+                const response = await fetch('http://127.0.0.1:8004/api/v1/recommendations/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div class="result">
+                            <h4>🎯 AI-рекомендации готовы!</h4>
+                            <p><strong>Уверенность AI:</strong> <span class="confidence">${(data.confidence_score * 100).toFixed(1)}%</span></p>
+                            <p><strong>Обоснование:</strong> ${data.reasoning}</p>
+                            <h5>📚 Рекомендуемые книги:</h5>
+                            ${data.recommendations ? data.recommendations.map((rec, index) => 
+                                `<div class="book-item">
+                                    <h4>${index + 1}. ${rec.name || 'Неизвестная книга'}</h4>
+                                    <p><strong>Автор:</strong> ${rec.author || 'Неизвестный автор'}</p>
+                                    <p><strong>Почему рекомендую:</strong> ${rec.reason || 'Подходит под ваши предпочтения'}</p>
+                                    ${rec.match_score ? `<p><strong>Совпадение:</strong> ${(rec.match_score * 100).toFixed(1)}%</p>` : ''}
+                                </div>`
+                            ).join('') : '<p>Рекомендации не найдены</p>'}
+                        </div>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    resultDiv.innerHTML = `<div class="result"><h4>❌ Ошибка рекомендаций</h4><p>Код: ${response.status}</p><p>Детали: ${errorText}</p></div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result"><h4>❌ Ошибка подключения</h4><p>${error.message}</p><p>Возможно, сервис рекомендаций не запущен на порту 8004</p></div>`;
+            }
+        }
+
+        async function runFullTest() {
+            const resultDiv = document.getElementById('fullTestResult');
+            resultDiv.innerHTML = '<div class="loading">🔄 Запускаем полный тест системы...</div>';
+            
+            let results = [];
+            
+            // Тест 1: Каталог
+            try {
+                const catalogResponse = await fetch('http://127.0.0.1:8000/api/v1/products');
+                if (catalogResponse.ok) {
+                    const catalogData = await catalogResponse.json();
+                    results.push(`✅ Каталог: ${catalogData.products ? catalogData.products.length : 0} книг`);
+                } else {
+                    results.push(`❌ Каталог: Ошибка ${catalogResponse.status}`);
+                }
+            } catch (e) {
+                results.push(`❌ Каталог: ${e.message}`);
+            }
+            
+            // Тест 2: Рекомендации
+            try {
+                const recResponse = await fetch('http://127.0.0.1:8004/health');
+                if (recResponse.ok) {
+                    results.push(`✅ Рекомендации: Сервис работает`);
+                } else {
+                    results.push(`❌ Рекомендации: Ошибка ${recResponse.status}`);
+                }
+            } catch (e) {
+                results.push(`❌ Рекомендации: ${e.message}`);
+            }
+            
+            // Тест 3: AI-генерация
+            try {
+                const aiResponse = await fetch('http://127.0.0.1:8004/api/v1/recommendations/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_preferences: "Тест",
+                        max_recommendations: 1
+                    })
+                });
+                if (aiResponse.ok) {
+                    results.push(`✅ AI-генерация: Работает`);
+                } else {
+                    results.push(`❌ AI-генерация: Ошибка ${aiResponse.status}`);
+                }
+            } catch (e) {
+                results.push(`❌ AI-генерация: ${e.message}`);
+            }
+            
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <h4>📊 Результаты полного теста:</h4>
+                    ${results.map(result => `<p>${result}</p>`).join('')}
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Быстрый тест корзины - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .test-section {
+            background-color: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #28a745;
+            color: white;
+        }
+        .error {
+            background-color: #dc3545;
+            color: white;
+        }
+        .info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        pre {
+            background-color: #2A2B30;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🛒 Быстрый тест корзины</h1>
+    
+    <div class="test-section">
+        <h2>1. Добавить товары в корзину</h2>
+        <button onclick="addToCart('main-book')">Добавить "Гарри Поттер"</button>
+        <button onclick="addToCart('1')">Добавить "Крестный отец"</button>
+        <button onclick="addToCart('2')">Добавить "Тени прошлого"</button>
+        <div id="add-status" class="status info">Нажмите кнопки для добавления</div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Проверить данные корзины</h2>
+        <button onclick="checkCartData()">Проверить данные</button>
+        <div id="cart-status" class="status info">Нажмите кнопку для проверки</div>
+        <pre id="cart-data"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Обновить счетчик</h2>
+        <button onclick="updateCartCount()">Обновить счетчик</button>
+        <div id="count-status" class="status info">Нажмите кнопку для обновления</div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Переход к корзине</h2>
+        <button onclick="window.open('src/cart.html', '_blank')">Открыть корзину</button>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Очистить корзину</h2>
+        <button onclick="clearCart()">Очистить корзину</button>
+        <div id="clear-status" class="status info">Нажмите кнопку для очистки</div>
+    </div>
+
+    <script src="scripts/script.js"></script>
+    <script src="scripts/cart.js"></script>
+    <script>
+        function addToCart(productId) {
+            try {
+                addToCart(productId);
+                document.getElementById('add-status').textContent = `✅ Товар ${productId} добавлен`;
+                document.getElementById('add-status').className = 'status success';
+            } catch (error) {
+                document.getElementById('add-status').textContent = `❌ Ошибка: ${error.message}`;
+                document.getElementById('add-status').className = 'status error';
+            }
+        }
+
+        function checkCartData() {
+            try {
+                const oldCart = localStorage.getItem('cart');
+                const newCart = localStorage.getItem('cartWithQuantity');
+                
+                const data = {
+                    oldCart: oldCart ? JSON.parse(oldCart) : null,
+                    newCart: newCart ? JSON.parse(newCart) : null,
+                    totalItems: newCart ? Object.values(JSON.parse(newCart)).reduce((sum, q) => sum + q, 0) : 0
+                };
+                
+                document.getElementById('cart-data').textContent = JSON.stringify(data, null, 2);
+                
+                if (data.totalItems > 0) {
+                    document.getElementById('cart-status').textContent = `✅ В корзине ${data.totalItems} товаров`;
+                    document.getElementById('cart-status').className = 'status success';
+                } else {
+                    document.getElementById('cart-status').textContent = 'ℹ️ Корзина пуста';
+                    document.getElementById('cart-status').className = 'status info';
+                }
+            } catch (error) {
+                document.getElementById('cart-status').textContent = `❌ Ошибка: ${error.message}`;
+                document.getElementById('cart-status').className = 'status error';
+            }
+        }
+
+        function updateCartCount() {
+            try {
+                updateCartCount();
+                document.getElementById('count-status').textContent = '✅ Счетчик обновлен';
+                document.getElementById('count-status').className = 'status success';
+            } catch (error) {
+                document.getElementById('count-status').textContent = `❌ Ошибка: ${error.message}`;
+                document.getElementById('count-status').className = 'status error';
+            }
+        }
+
+        function clearCart() {
+            try {
+                localStorage.removeItem('cart');
+                localStorage.removeItem('cartWithQuantity');
+                document.getElementById('clear-status').textContent = '✅ Корзина очищена';
+                document.getElementById('clear-status').className = 'status success';
+            } catch (error) {
+                document.getElementById('clear-status').textContent = `❌ Ошибка: ${error.message}`;
+                document.getElementById('clear-status').className = 'status error';
+            }
+        }
+
+        // Автоматическая проверка при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Страница тестирования загружена');
+            setTimeout(checkCartData, 1000);
+        });
+    </script>
+</body>
+</html>

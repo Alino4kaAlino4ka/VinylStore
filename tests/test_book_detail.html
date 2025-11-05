@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест страницы деталей книги (book-detail.js)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .api-test {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .test-results {
+            margin-top: 20px;
+        }
+        .test-item {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border-left: 4px solid #ccc;
+        }
+        .test-item.pass {
+            background-color: #d4edda;
+            border-left-color: #28a745;
+        }
+        .test-item.fail {
+            background-color: #f8d7da;
+            border-left-color: #dc3545;
+        }
+        .test-item.info {
+            background-color: #d1ecf1;
+            border-left-color: #17a2b8;
+        }
+        .demo-area {
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px dashed #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        .demo-area h4 {
+            margin-top: 0;
+        }
+        main.page-content {
+            min-height: 200px;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 Тест страницы деталей книги (book-detail.js)</h1>
+        
+        <div class="test-section">
+            <h3>1. Проверка API эндпоинта</h3>
+            <p>Тестируем доступность API для получения детальной информации о книге:</p>
+            <input type="number" id="test-book-id" placeholder="ID книги" value="1" min="1">
+            <button onclick="testAPIEndpoint()">Проверить API</button>
+            <div id="api-status"></div>
+            <div id="api-response" class="api-test" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Тест получения ID из URL</h3>
+            <p>Проверяем корректность извлечения ID книги из параметров URL:</p>
+            <button onclick="testURLParsing()">Тест парсинга URL</button>
+            <div id="url-test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Тест создания карточки книги</h3>
+            <p>Проверяем создание DOM-структуры карточки книги:</p>
+            <button onclick="testCardCreation()">Тест создания карточки</button>
+            <div id="card-test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Тест обработки ошибок</h3>
+            <p>Проверяем обработку различных типов ошибок:</p>
+            <button onclick="testErrorHandling()">Тест обработки ошибок</button>
+            <div id="error-test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. Тест очистки main элемента</h3>
+            <p>Проверяем корректную очистку содержимого main элемента перед отображением карточки:</p>
+            <button onclick="testClearMain()">Тест очистки</button>
+            <div id="clear-test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>6. Полный интеграционный тест</h3>
+            <p>Тестируем полный цикл: получение ID → запрос к API → создание карточки:</p>
+            <input type="number" id="integration-book-id" placeholder="ID книги" value="1" min="1">
+            <button onclick="testFullIntegration()">Запустить полный тест</button>
+            <div id="integration-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>7. Демонстрация работы</h3>
+            <p>Демонстрация работы скрипта с реальным API:</p>
+            <div class="demo-area">
+                <h4>Область демонстрации (будет использован main.page-content):</h4>
+                <input type="number" id="demo-book-id" placeholder="ID книги" value="1" min="1">
+                <button onclick="runDemo()">Загрузить книгу</button>
+                <button onclick="clearDemo()">Очистить</button>
+                <main class="page-content" style="margin-top: 20px;">
+                    <p style="color: #999; text-align: center; padding: 40px;">
+                        Здесь будет отображена карточка книги после нажатия "Загрузить книгу"
+                    </p>
+                </main>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 Сводка результатов</h3>
+            <div id="summary-results"></div>
+        </div>
+    </div>
+
+    <!-- Подключаем скрипт для тестирования -->
+    <script src="../src/scripts/book-detail.js"></script>
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+        const PRODUCTS_ENDPOINT = `${API_BASE_URL}/api/v1/products`;
+        let testResults = [];
+
+        function addTestResult(testName, passed, message, details = '') {
+            const result = {
+                name: testName,
+                passed,
+                message,
+                details,
+                timestamp: new Date().toISOString()
+            };
+            testResults.push(result);
+            updateSummary();
+            return result;
+        }
+
+        function displayResult(containerId, result) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const div = document.createElement('div');
+            div.className = `test-item ${result.passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${result.passed ? '✅' : '❌'} ${result.name}</strong><br>
+                ${result.message}<br>
+                ${result.details ? `<small>${result.details}</small>` : ''}
+            `;
+            container.appendChild(div);
+        }
+
+        // Тест 1: Проверка API эндпоинта
+        async function testAPIEndpoint() {
+            const bookId = document.getElementById('test-book-id').value || '1';
+            const statusDiv = document.getElementById('api-status');
+            const responseDiv = document.getElementById('api-response');
+            
+            statusDiv.innerHTML = '<div class="status info">Проверяем API...</div>';
+            responseDiv.style.display = 'none';
+
+            try {
+                const response = await fetch(`${PRODUCTS_ENDPOINT}/${bookId}`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = '<div class="status success">✅ API доступен и возвращает данные</div>';
+                    responseDiv.style.display = 'block';
+                    responseDiv.textContent = JSON.stringify(data, null, 2);
+                    
+                    addTestResult(
+                        'API эндпоинт доступен',
+                        true,
+                        `Успешно получены данные книги с ID ${bookId}`,
+                        `Статус: ${response.status}, Название: ${data.title || data.name || 'N/A'}`
+                    );
+                } else {
+                    statusDiv.innerHTML = `<div class="status error">❌ Ошибка API: ${response.status}</div>`;
+                    addTestResult(
+                        'API эндпоинт',
+                        false,
+                        `Ошибка ${response.status}: ${data.detail || 'Неизвестная ошибка'}`
+                    );
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Ошибка подключения: ${error.message}</div>`;
+                addTestResult(
+                    'API эндпоинт',
+                    false,
+                    `Ошибка подключения: ${error.message}`,
+                    'Проверьте, что сервис каталога запущен на порту 8000'
+                );
+            }
+        }
+
+        // Тест 2: Парсинг URL
+        function testURLParsing() {
+            const resultsDiv = document.getElementById('url-test-results');
+            resultsDiv.innerHTML = '';
+
+            // Тест 1: URL с параметром id
+            const testCases = [
+                { url: 'http://example.com/book-detail.html?id=123', expected: '123', name: 'URL с параметром id' },
+                { url: 'http://example.com/book-detail.html?id=1&other=value', expected: '1', name: 'URL с несколькими параметрами' },
+                { url: 'http://example.com/book-detail.html', expected: null, name: 'URL без параметра id' },
+                { url: 'http://example.com/book-detail.html?id=', expected: '', name: 'URL с пустым id' },
+            ];
+
+            testCases.forEach(testCase => {
+                const url = new URL(testCase.url);
+                const params = new URLSearchParams(url.search);
+                const actual = params.get('id');
+                
+                const passed = actual === testCase.expected;
+                const result = addTestResult(
+                    testCase.name,
+                    passed,
+                    passed ? '✅ Парсинг работает корректно' : `❌ Ожидалось: ${testCase.expected}, получено: ${actual}`
+                );
+                displayResult('url-test-results', result);
+            });
+        }
+
+        // Тест 3: Создание карточки
+        function testCardCreation() {
+            const resultsDiv = document.getElementById('card-test-results');
+            resultsDiv.innerHTML = '';
+
+            // Мок-данные для теста (соответствуют формату API: name, author как строка, cover_url)
+            const mockBookData = {
+                id: 1,
+                name: 'Тестовая книга',
+                author: 'Тестовый автор',
+                description: 'Это описание тестовой книги',
+                cover_url: 'https://example.com/cover.jpg',
+                price: 199.99
+            };
+
+            try {
+                // Вызываем функцию создания карточки (она должна быть доступна глобально)
+                const card = createBookDetailCard(mockBookData);
+                
+                // Проверяем структуру
+                const checks = [
+                    {
+                        name: 'Карточка создана',
+                        check: () => card !== null && card !== undefined,
+                        message: 'Функция возвращает элемент'
+                    },
+                    {
+                        name: 'Правильный класс секции',
+                        check: () => card.className === 'book-details',
+                        message: 'Секция имеет класс book-details'
+                    },
+                    {
+                        name: 'Обложка присутствует',
+                        check: () => card.querySelector('.book-cover-section img') !== null,
+                        message: 'Обложка найдена в DOM'
+                    },
+                    {
+                        name: 'Заголовок присутствует',
+                        check: () => {
+                            const h1 = card.querySelector('h1');
+                            return h1 !== null && h1.textContent === 'Тестовая книга';
+                        },
+                        message: 'Заголовок найден и содержит правильный текст'
+                    },
+                    {
+                        name: 'Автор присутствует',
+                        check: () => card.textContent.includes('Тестовый автор'),
+                        message: 'Информация об авторе присутствует'
+                    },
+                    {
+                        name: 'Описание присутствует',
+                        check: () => card.querySelector('.description') !== null && card.querySelector('.description').textContent.includes('Это описание'),
+                        message: 'Описание найдено'
+                    },
+                    {
+                        name: 'Кнопка покупки присутствует',
+                        check: () => card.querySelector('.buy-btn') !== null,
+                        message: 'Кнопка покупки найдена'
+                    },
+                    {
+                        name: 'Правильный data-product-id',
+                        check: () => {
+                            const btn = card.querySelector('.buy-btn');
+                            return btn && btn.getAttribute('data-product-id') === '1';
+                        },
+                        message: 'Кнопка имеет правильный data-product-id'
+                    }
+                ];
+
+                checks.forEach(check => {
+                    const passed = check.check();
+                    const result = addTestResult(
+                        check.name,
+                        passed,
+                        passed ? `✅ ${check.message}` : `❌ ${check.message}`
+                    );
+                    displayResult('card-test-results', result);
+                });
+
+            } catch (error) {
+                const result = addTestResult(
+                    'Создание карточки',
+                    false,
+                    `❌ Ошибка при создании карточки: ${error.message}`
+                );
+                displayResult('card-test-results', result);
+            }
+        }
+
+        // Тест 4: Обработка ошибок
+        function testErrorHandling() {
+            const resultsDiv = document.getElementById('error-test-results');
+            resultsDiv.innerHTML = '';
+
+            // Тест функции showError
+            const mainElement = document.querySelector('main.page-content');
+            if (mainElement) {
+                const originalContent = mainElement.innerHTML;
+                showError('Тестовая ошибка');
+                
+                const errorDiv = mainElement.querySelector('h2');
+                const passed = errorDiv !== null && errorDiv.textContent === 'Ошибка';
+                
+                const result = addTestResult(
+                    'Отображение ошибки',
+                    passed,
+                    passed ? '✅ Функция showError работает корректно' : '❌ Функция showError не работает'
+                );
+                displayResult('error-test-results', result);
+                
+                // Восстанавливаем содержимое
+                mainElement.innerHTML = originalContent;
+            }
+
+            // Тест обработки отсутствующего ID
+            const testCases = [
+                {
+                    name: 'Отсутствие ID в URL',
+                    test: () => {
+                        const params = new URLSearchParams('');
+                        return params.get('id') === null;
+                    },
+                    expected: true
+                },
+                {
+                    name: 'Обработка пустого ID',
+                    test: () => {
+                        const params = new URLSearchParams('id=');
+                        return params.get('id') === '';
+                    },
+                    expected: true
+                }
+            ];
+
+            testCases.forEach(testCase => {
+                const passed = testCase.test() === testCase.expected;
+                const result = addTestResult(
+                    testCase.name,
+                    passed,
+                    passed ? '✅ Обработка работает корректно' : '❌ Обработка не работает'
+                );
+                displayResult('error-test-results', result);
+            });
+        }
+
+        // Тест 5: Очистка main элемента
+        function testClearMain() {
+            const resultsDiv = document.getElementById('clear-test-results');
+            resultsDiv.innerHTML = '';
+
+            const mainElement = document.querySelector('main.page-content');
+            if (mainElement) {
+                // Заполняем тестовым содержимым
+                mainElement.innerHTML = '<div>Тестовое содержимое</div><p>Еще один элемент</p>';
+                
+                // Проверяем, что содержимое есть
+                const beforeClear = mainElement.innerHTML.length > 0;
+                
+                // Вызываем очистку
+                mainElement.innerHTML = '';
+                
+                // Проверяем, что содержимое очищено
+                const afterClear = mainElement.innerHTML.length === 0;
+                
+                const result = addTestResult(
+                    'Очистка main элемента',
+                    beforeClear && afterClear,
+                    (beforeClear && afterClear) ? '✅ Очистка работает корректно' : '❌ Очистка не работает'
+                );
+                displayResult('clear-test-results', result);
+                
+                // Восстанавливаем содержимое
+                mainElement.innerHTML = '<p style="color: #999; text-align: center; padding: 40px;">Здесь будет отображена карточка книги после нажатия "Загрузить книгу"</p>';
+            }
+        }
+
+        // Тест 6: Полный интеграционный тест
+        async function testFullIntegration() {
+            const bookId = document.getElementById('integration-book-id').value || '1';
+            const resultsDiv = document.getElementById('integration-results');
+            resultsDiv.innerHTML = '';
+
+            const steps = [
+                { name: 'Шаг 1: Получение ID из URL', status: 'pending' },
+                { name: 'Шаг 2: Запрос к API', status: 'pending' },
+                { name: 'Шаг 3: Очистка main элемента', status: 'pending' },
+                { name: 'Шаг 4: Создание карточки', status: 'pending' },
+                { name: 'Шаг 5: Добавление карточки в DOM', status: 'pending' }
+            ];
+
+            try {
+                // Шаг 1
+                const urlParams = new URLSearchParams(`?id=${bookId}`);
+                const id = urlParams.get('id');
+                if (id) {
+                    steps[0].status = 'success';
+                } else {
+                    steps[0].status = 'error';
+                    throw new Error('ID не получен из URL');
+                }
+
+                // Шаг 2
+                const response = await fetch(`${PRODUCTS_ENDPOINT}/${id}`);
+                if (!response.ok) {
+                    steps[1].status = 'error';
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const bookData = await response.json();
+                steps[1].status = 'success';
+
+                // Шаг 3
+                const mainElement = document.querySelector('main.page-content');
+                if (mainElement) {
+                    mainElement.innerHTML = '';
+                    steps[2].status = 'success';
+                } else {
+                    steps[2].status = 'error';
+                    throw new Error('main элемент не найден');
+                }
+
+                // Шаг 4
+                const card = createBookDetailCard(bookData);
+                if (card) {
+                    steps[3].status = 'success';
+                } else {
+                    steps[3].status = 'error';
+                    throw new Error('Карточка не создана');
+                }
+
+                // Шаг 5
+                if (mainElement && card) {
+                    mainElement.appendChild(card);
+                    steps[4].status = 'success';
+                } else {
+                    steps[4].status = 'error';
+                    throw new Error('Карточка не добавлена в DOM');
+                }
+
+                // Отображаем результаты
+                steps.forEach((step, index) => {
+                    const div = document.createElement('div');
+                    div.className = `test-item ${step.status === 'success' ? 'pass' : 'fail'}`;
+                    div.innerHTML = `<strong>${step.status === 'success' ? '✅' : '❌'} ${step.name}</strong>`;
+                    resultsDiv.appendChild(div);
+                });
+
+                const allPassed = steps.every(s => s.status === 'success');
+                const result = addTestResult(
+                    'Полный интеграционный тест',
+                    allPassed,
+                    allPassed ? '✅ Все шаги выполнены успешно' : '❌ Некоторые шаги завершились с ошибкой'
+                );
+
+            } catch (error) {
+                const result = addTestResult(
+                    'Полный интеграционный тест',
+                    false,
+                    `❌ Ошибка: ${error.message}`
+                );
+                displayResult('integration-results', result);
+            }
+        }
+
+        // Демонстрация работы
+        async function runDemo() {
+            const bookId = document.getElementById('demo-book-id').value || '1';
+            const mainElement = document.querySelector('main.page-content');
+            
+            if (!mainElement) {
+                alert('Элемент main.page-content не найден');
+                return;
+            }
+
+            try {
+                mainElement.innerHTML = '<div style="text-align: center; padding: 40px;"><p>Загрузка...</p></div>';
+                
+                const response = await fetch(`${PRODUCTS_ENDPOINT}/${bookId}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const bookData = await response.json();
+                mainElement.innerHTML = '';
+                const card = createBookDetailCard(bookData);
+                mainElement.appendChild(card);
+                
+                addTestResult(
+                    'Демонстрация',
+                    true,
+                    `✅ Книга с ID ${bookId} успешно загружена и отображена`
+                );
+            } catch (error) {
+                showError(`Не удалось загрузить книгу: ${error.message}`);
+                addTestResult(
+                    'Демонстрация',
+                    false,
+                    `❌ Ошибка: ${error.message}`
+                );
+            }
+        }
+
+        function clearDemo() {
+            const mainElement = document.querySelector('main.page-content');
+            if (mainElement) {
+                mainElement.innerHTML = '<p style="color: #999; text-align: center; padding: 40px;">Здесь будет отображена карточка книги после нажатия "Загрузить книгу"</p>';
+            }
+        }
+
+        function updateSummary() {
+            const summaryDiv = document.getElementById('summary-results');
+            if (!summaryDiv) return;
+
+            const total = testResults.length;
+            const passed = testResults.filter(r => r.passed).length;
+            const failed = total - passed;
+
+            summaryDiv.innerHTML = `
+                <div class="status ${failed === 0 ? 'success' : failed < total ? 'info' : 'error'}">
+                    <strong>Всего тестов: ${total}</strong><br>
+                    ✅ Успешно: ${passed}<br>
+                    ❌ Провалено: ${failed}<br>
+                    📊 Процент успеха: ${total > 0 ? Math.round((passed / total) * 100) : 0}%
+                </div>
+            `;
+        }
+
+        // Автоматический запуск при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Тестовая страница загружена. Готово к тестированию.');
+        });
+    </script>
+</body>
+</html>
+

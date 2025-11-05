@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест AI-генератора описаний</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+
+        .section-title {
+            font-size: 1.4em;
+            color: #495057;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 500;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            margin-top: 15px;
+        }
+
+        .success {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .error {
+            border-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .description-text {
+            line-height: 1.6;
+            color: #495057;
+            font-size: 1.05em;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+
+        .step-info {
+            font-size: 0.95em;
+            color: #0056b3;
+            margin-bottom: 5px;
+        }
+
+        .loading {
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .catalog-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .book-item {
+            padding: 10px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 3px solid #667eea;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .book-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .book-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .book-author {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .status-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-weight: 500;
+        }
+
+        .status-loading {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AI-генератор описаний</h1>
+        <p class="subtitle">Тестирование оркестратора для генерации описаний книг</p>
+
+        <div class="info-box">
+            <div class="step-info"><strong>Шаг 1:</strong> GET /api/v1/products/{product_id} - Получение данных о книге</div>
+            <div class="step-info"><strong>Шаг 2:</strong> Формирование промпта для LLM</div>
+            <div class="step-info"><strong>Шаг 3:</strong> Вызов LLM для генерации описания</div>
+            <div class="step-info"><strong>Шаг 4:</strong> PATCH /api/v1/products/{product_id} - Обновление описания</div>
+            <div class="step-info"><strong>Шаг 5:</strong> Возврат результата клиенту</div>
+        </div>
+
+        <!-- Секция с каталогом книг -->
+        <div class="section">
+            <div class="section-title">📚 Каталог книг</div>
+            <button onclick="loadCatalog()">Загрузить каталог</button>
+            <div id="catalogList" class="catalog-list" style="display: none; margin-top: 15px;"></div>
+        </div>
+
+        <!-- Секция генерации описания -->
+        <div class="section">
+            <div class="section-title">✨ Генерация описания</div>
+            
+            <div class="input-group">
+                <label for="productId">ID книги:</label>
+                <input type="number" id="productId" placeholder="Введите ID книги (например, 1)" min="1">
+            </div>
+
+            <button onclick="generateDescription()" id="generateBtn">
+                🚀 Сгенерировать описание
+            </button>
+
+            <div id="statusMessage"></div>
+        </div>
+
+        <!-- Секция результата -->
+        <div class="section" id="resultSection" style="display: none;">
+            <div class="section-title">📝 Результат</div>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        const CATALOG_API = 'http://127.0.0.1:8000/api/v1/products';
+        const RECOMMENDER_API = 'http://127.0.0.1:8004/api/v1/recommendations/generate-description';
+
+        // Функция для экранирования HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Загрузка каталога книг
+        async function loadCatalog() {
+            try {
+                const response = await fetch(CATALOG_API);
+                const data = await response.json();
+                
+                const catalogList = document.getElementById('catalogList');
+                catalogList.innerHTML = '';
+                
+                if (data.products && data.products.length > 0) {
+                    data.products.forEach(book => {
+                        const bookItem = document.createElement('div');
+                        bookItem.className = 'book-item';
+                        bookItem.onclick = () => selectBook(book.id);
+                        bookItem.innerHTML = `
+                            <div class="book-name">ID: ${book.id} - ${book.name}</div>
+                            <div class="book-author">Автор: ${book.author}</div>
+                        `;
+                        catalogList.appendChild(bookItem);
+                    });
+                    catalogList.style.display = 'block';
+                } else {
+                    catalogList.innerHTML = '<p>Каталог пуст</p>';
+                    catalogList.style.display = 'block';
+                }
+            } catch (error) {
+                alert('Ошибка при загрузке каталога: ' + error.message);
+            }
+        }
+
+        // Выбор книги из каталога
+        function selectBook(bookId) {
+            document.getElementById('productId').value = bookId;
+        }
+
+        // Генерация описания
+        async function generateDescription() {
+            const productId = document.getElementById('productId').value;
+            
+            if (!productId) {
+                alert('Пожалуйста, введите ID книги');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generateBtn');
+            const statusMessage = document.getElementById('statusMessage');
+            const resultSection = document.getElementById('resultSection');
+            const resultContent = document.getElementById('resultContent');
+
+            // Отключаем кнопку и показываем статус
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '⏳ Генерация описания<span class="loading"></span>';
+            
+            statusMessage.className = 'status-message status-loading';
+            statusMessage.innerHTML = '🔄 Выполняется оркестрация запросов (обычно 30-90 секунд)...';
+            statusMessage.style.display = 'block';
+            
+            // Показываем таймер обратного отсчета
+            let timeElapsed = 0;
+            let timerInterval = setInterval(() => {
+                timeElapsed += 1;
+                const minutes = Math.floor(timeElapsed / 60);
+                const seconds = timeElapsed % 60;
+                if (statusMessage.classList.contains('status-loading')) {
+                    statusMessage.innerHTML = `🔄 Генерация описания (${minutes}:${seconds.toString().padStart(2, '0')})... Обычно занимает 30-90 секунд.`;
+                } else {
+                    clearInterval(timerInterval);
+                }
+            }, 1000);
+
+            resultSection.style.display = 'none';
+
+            const controller = new AbortController();
+            let timeoutId = null;
+            
+            try {
+                console.log(`Отправка запроса к: ${RECOMMENDER_API}/${productId}`);
+                
+                // Создаем AbortController для таймаута
+                // 100 секунд - достаточное время для генерации (серверный таймаут 90 сек)
+                timeoutId = setTimeout(() => {
+                    if (controller && !controller.signal.aborted) {
+                        controller.abort();
+                    }
+                }, 100000); // 100 секунд таймаут
+                
+                const response = await fetch(`${RECOMMENDER_API}/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                
+                // Очищаем таймаут при успешном ответе
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+
+                const data = await response.json();
+                console.log('Ответ:', data);
+
+                if (response.ok && data.success) {
+                    // Успех
+                    statusMessage.className = 'status-message status-success';
+                    statusMessage.innerHTML = '✅ ' + data.message;
+
+                    resultContent.innerHTML = `
+                        <div class="result-box success">
+                            <div class="result-title">🎉 Описание успешно сгенерировано!</div>
+                            <p><strong>ID книги:</strong> ${data.product_id}</p>
+                            <hr style="margin: 15px 0; border: none; border-top: 1px solid #28a745;">
+                            <div class="result-title">Сгенерированное описание:</div>
+                            <div class="description-text">${data.generated_description}</div>
+                        </div>
+                    `;
+                    resultSection.style.display = 'block';
+                } else {
+                    // Ошибка
+                    statusMessage.className = 'status-message status-error';
+                    statusMessage.innerHTML = '❌ Ошибка: ' + (data.detail || data.message || 'Неизвестная ошибка');
+
+                    resultContent.innerHTML = `
+                        <div class="result-box error">
+                            <div class="result-title">❌ Ошибка генерации</div>
+                            <p>${data.detail || data.message || JSON.stringify(data)}</p>
+                        </div>
+                    `;
+                    resultSection.style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error('Ошибка:', error);
+                let errorMessage = error.message || 'Неизвестная ошибка';
+                
+                if (error.name === 'AbortError' || error.message.includes('aborted')) {
+                    errorMessage = 'Превышено время ожидания (100 секунд). Проверьте работу сервисов и подключение к интернету.';
+                } else if (error.message) {
+                    errorMessage = error.message;
+                }
+                
+                statusMessage.className = 'status-message status-error';
+                statusMessage.innerHTML = '❌ Ошибка соединения: ' + escapeHtml(errorMessage);
+
+                resultContent.innerHTML = `
+                    <div class="result-box error">
+                        <div class="result-title">❌ Ошибка соединения</div>
+                        <p>${escapeHtml(errorMessage)}</p>
+                        <p style="margin-top: 10px; font-size: 0.9em; color: #666;">
+                            Убедитесь, что сервисы catalog (порт 8000) и recommender (порт 8004) запущены.
+                        </p>
+                    </div>
+                `;
+                resultSection.style.display = 'block';
+            } finally {
+                // Всегда очищаем таймаут и таймер
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+                // Включаем кнопку обратно
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '🚀 Сгенерировать описание';
+            }
+        }
+
+        // Загружаем каталог при загрузке страницы
+        window.onload = () => {
+            console.log('Страница загружена. Готов к тестированию!');
+        };
+    </script>
+</body>
+</html>

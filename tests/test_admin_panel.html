@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест админ-панели - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .test-section {
+            background-color: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #28a745;
+            color: white;
+        }
+        .error {
+            background-color: #dc3545;
+            color: white;
+        }
+        .info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        pre {
+            background-color: #2A2B30;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 Тест админ-панели</h1>
+    
+    <div class="test-section">
+        <h2>1. Проверить Catalog Service</h2>
+        <button onclick="checkCatalogService()">Проверить сервис</button>
+        <div id="service-status" class="status info">Нажмите кнопку для проверки</div>
+        <pre id="service-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Тест API товаров</h2>
+        <button onclick="testProductsAPI()">Получить товары</button>
+        <div id="products-status" class="status info">Нажмите кнопку для тестирования</div>
+        <pre id="products-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Тест создания товара</h2>
+        <button onclick="testCreateProduct()">Создать тестовый товар</button>
+        <div id="create-status" class="status info">Нажмите кнопку для тестирования</div>
+        <pre id="create-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Переход к админ-панели</h2>
+        <button onclick="window.open('admin/admin.html', '_blank')">Открыть админ-панель</button>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Переход к главной странице</h2>
+        <button onclick="window.open('src/index.html', '_blank')">Открыть главную страницу</button>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8000';
+
+        async function checkCatalogService() {
+            try {
+                showStatus('service-status', 'info', 'Проверка Catalog Service...');
+                
+                const response = await fetch(`${API_BASE_URL}/health`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('service-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('service-status', 'success', 'Catalog Service работает!');
+                
+            } catch (error) {
+                document.getElementById('service-result').textContent = error.toString();
+                showStatus('service-status', 'error', `Ошибка: ${error.message}`);
+            }
+        }
+
+        async function testProductsAPI() {
+            try {
+                showStatus('products-status', 'info', 'Получение товаров...');
+                
+                const response = await fetch(`${API_BASE_URL}/api/v1/admin/products`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('products-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('products-status', 'success', `Получено ${data.products.length} товаров`);
+                
+            } catch (error) {
+                document.getElementById('products-result').textContent = error.toString();
+                showStatus('products-status', 'error', `Ошибка: ${error.message}`);
+            }
+        }
+
+        async function testCreateProduct() {
+            try {
+                showStatus('create-status', 'info', 'Создание тестового товара...');
+                
+                const testProduct = {
+                    name: "Тестовый товар",
+                    author_name: "Тестовый автор",
+                    description: "Описание тестового товара",
+                    price: 99.99,
+                    cover_url: "https://example.com/test.jpg"
+                };
+
+                const response = await fetch(`${API_BASE_URL}/api/v1/admin/products`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(testProduct)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('create-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('create-status', 'success', 'Тестовый товар создан!');
+                
+            } catch (error) {
+                document.getElementById('create-result').textContent = error.toString();
+                showStatus('create-status', 'error', `Ошибка: ${error.message}`);
+            }
+        }
+
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        // Автоматическая проверка при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Страница тестирования админ-панели загружена');
+            setTimeout(checkCatalogService, 1000);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Быстрая проверка сервисов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .service {
+            background-color: #1A1B20;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .ok { background-color: #28a745; color: white; }
+        .error { background-color: #dc3545; color: white; }
+        .loading { background-color: #17a2b8; color: white; }
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background-color: #e68900; }
+    </style>
+</head>
+<body>
+    <h1>🚀 Быстрая проверка сервисов</h1>
+    
+    <div class="service">
+        <span>Cart Service (8001)</span>
+        <span id="cart-status" class="status loading">Проверка...</span>
+    </div>
+    
+    <div class="service">
+        <span>Orders Service (8002)</span>
+        <span id="orders-status" class="status loading">Проверка...</span>
+    </div>
+    
+    <div class="service">
+        <span>Catalog Service (8000)</span>
+        <span id="catalog-status" class="status loading">Проверка...</span>
+    </div>
+    
+    <div class="service">
+        <span>Users Service (8003)</span>
+        <span id="users-status" class="status loading">Проверка...</span>
+    </div>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <button onclick="checkAll()">🔄 Проверить все</button>
+        <button onclick="window.open('src/cart.html', '_blank')">🛒 Открыть корзину</button>
+    </div>
+
+    <script>
+        async function checkService(url, statusId, name) {
+            const statusElement = document.getElementById(statusId);
+            
+            try {
+                statusElement.textContent = 'Проверка...';
+                statusElement.className = 'status loading';
+                
+                const response = await fetch(url);
+                
+                if (response.ok) {
+                    statusElement.textContent = '✅ OK';
+                    statusElement.className = 'status ok';
+                } else {
+                    statusElement.textContent = '❌ Ошибка ' + response.status;
+                    statusElement.className = 'status error';
+                }
+            } catch (error) {
+                statusElement.textContent = '❌ Недоступен';
+                statusElement.className = 'status error';
+            }
+        }
+
+        async function checkAll() {
+            await checkService('http://localhost:8001/health', 'cart-status', 'Cart');
+            await checkService('http://localhost:8002/health', 'orders-status', 'Orders');
+            await checkService('http://localhost:8000/health', 'catalog-status', 'Catalog');
+            await checkService('http://localhost:8003/health', 'users-status', 'Users');
+        }
+
+        // Автоматическая проверка при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkAll, 1000);
+        });
+    </script>
+</body>
+</html>
+
+

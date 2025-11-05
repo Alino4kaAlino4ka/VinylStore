@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест каталога аудиокниг</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-section h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .status.info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .api-test {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Тест каталога аудиокниг</h1>
+        
+        <div class="test-section">
+            <h3>1. Проверка API каталога</h3>
+            <p>Тестируем доступность API эндпоинта для загрузки аудиокниг:</p>
+            <button onclick="testAPI()">Проверить API</button>
+            <div id="api-status"></div>
+            <div id="api-response" class="api-test" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Проверка каталога</h3>
+            <p>Откройте каталог аудиокниг и проверьте:</p>
+            <ul>
+                <li>Загружаются ли аудиокниги с сервера</li>
+                <li>Отображаются ли новые книги из скриншота:
+                    <ul>
+                        <li>Эмоциональный интеллект (ДЭНИЕЛ ГОУЛМАН) - 599 руб.</li>
+                        <li>Основание (АЙЗЕК АЗИМОВ) - 27.99 руб.</li>
+                        <li>Дюна (ФРЭНК ГЕРБЕРТ) - 34.99 руб.</li>
+                        <li>Властелин колец (ДЖ.Р.Р. ТОЛКИН) - 39.99 руб.</li>
+                        <li>Гарри Поттер и философский камень (ДЖ.К. РОУЛИНГ) - 24.99 руб.</li>
+                    </ul>
+                </li>
+                <li>Работают ли фильтры по жанру и автору</li>
+                <li>Отображается ли пагинация (6 элементов на странице)</li>
+                <li>Работает ли добавление в корзину</li>
+                <li>Обновляется ли счетчик корзины в заголовке</li>
+                <li>Отображается ли рейтинг в формате "★ 4.5"</li>
+            </ul>
+            <button onclick="openCatalog()">Открыть каталог</button>
+        </div>
+
+        <div class="test-section">
+            <h3>3. Проверка функциональности</h3>
+            <div id="functionality-tests">
+                <button onclick="testLocalStorage()">Проверить localStorage</button>
+                <button onclick="testCartCount()">Проверить счетчик корзины</button>
+                <button onclick="clearCart()">Очистить корзину</button>
+            </div>
+            <div id="functionality-status"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Инструкции по тестированию</h3>
+            <div class="status info">
+                <strong>Пошаговое тестирование:</strong>
+                <ol>
+                    <li>Убедитесь, что сервер каталога запущен на порту 8000</li>
+                    <li>Нажмите "Проверить API" для проверки доступности</li>
+                    <li>Откройте каталог и проверьте загрузку данных</li>
+                    <li>Попробуйте фильтры по жанру и автору</li>
+                    <li>Добавьте несколько книг в корзину</li>
+                    <li>Проверьте обновление счетчика корзины</li>
+                    <li>Протестируйте пагинацию</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function testAPI() {
+            const statusDiv = document.getElementById('api-status');
+            const responseDiv = document.getElementById('api-response');
+            
+            statusDiv.innerHTML = '<div class="status info">Проверяем API...</div>';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/v1/products');
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = '<div class="status success">✅ API доступен! Загружено ' + data.products.length + ' аудиокниг</div>';
+                    responseDiv.style.display = 'block';
+                    responseDiv.textContent = JSON.stringify(data, null, 2);
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">❌ API недоступен. Статус: ' + response.status + '</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status error">❌ Ошибка подключения к API: ' + error.message + '</div>';
+            }
+        }
+
+        function openCatalog() {
+            window.open('catalog.html', '_blank');
+        }
+
+        function testLocalStorage() {
+            const statusDiv = document.getElementById('functionality-status');
+            try {
+                const testData = { test: 'data' };
+                localStorage.setItem('test', JSON.stringify(testData));
+                const retrieved = JSON.parse(localStorage.getItem('test'));
+                localStorage.removeItem('test');
+                
+                if (retrieved.test === 'data') {
+                    statusDiv.innerHTML = '<div class="status success">✅ localStorage работает корректно</div>';
+                } else {
+                    statusDiv.innerHTML = '<div class="status error">❌ localStorage работает некорректно</div>';
+                }
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="status error">❌ Ошибка localStorage: ' + error.message + '</div>';
+            }
+        }
+
+        function testCartCount() {
+            const statusDiv = document.getElementById('functionality-status');
+            const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+            statusDiv.innerHTML = '<div class="status info">📊 В корзине сейчас: ' + totalItems + ' товаров</div>';
+        }
+
+        function clearCart() {
+            localStorage.removeItem('cart');
+            const statusDiv = document.getElementById('functionality-status');
+            statusDiv.innerHTML = '<div class="status success">✅ Корзина очищена</div>';
+        }
+
+        // Автоматическая проверка при загрузке
+        window.addEventListener('load', function() {
+            testCartCount();
+        });
+    </script>
+</body>
+</html>

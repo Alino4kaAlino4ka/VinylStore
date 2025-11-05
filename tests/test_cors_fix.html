@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORS Test - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .test-section {
+            background-color: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #28a745;
+            color: white;
+        }
+        .error {
+            background-color: #dc3545;
+            color: white;
+        }
+        .info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        pre {
+            background-color: #2A2B30;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .instructions {
+            background-color: #2A2B30;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест CORS исправлений</h1>
+    
+    <div class="instructions">
+        <h3>Инструкции:</h3>
+        <ol>
+            <li>Убедитесь, что сервисы запущены:
+                <ul>
+                    <li>Cart Service на порту 8001</li>
+                    <li>Orders Service на порту 8002</li>
+                </ul>
+            </li>
+            <li>Нажмите кнопки ниже для тестирования</li>
+            <li>Проверьте консоль браузера на наличие ошибок</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>1. Тест Health Check Cart Service</h2>
+        <button onclick="testCartHealth()">Проверить Cart Service</button>
+        <div id="cart-health-status"></div>
+        <pre id="cart-health-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Тест Health Check Orders Service</h2>
+        <button onclick="testOrdersHealth()">Проверить Orders Service</button>
+        <div id="orders-health-status"></div>
+        <pre id="orders-health-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Тест CORS Cart Calculate</h2>
+        <button onclick="testCartCalculate()">Тест расчета корзины</button>
+        <div id="cart-calculate-status"></div>
+        <pre id="cart-calculate-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Тест CORS Orders Create</h2>
+        <button onclick="testOrdersCreate()">Тест создания заказа</button>
+        <div id="orders-create-status"></div>
+        <pre id="orders-create-result"></pre>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Переход к корзине</h2>
+        <button onclick="window.open('src/cart.html', '_blank')">Открыть корзину</button>
+    </div>
+
+    <script>
+        function showStatus(elementId, type, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `status ${type}`;
+        }
+
+        // Тест Health Check Cart Service
+        async function testCartHealth() {
+            try {
+                showStatus('cart-health-status', 'info', 'Проверка Cart Service...');
+                
+                const response = await fetch('http://localhost:8001/health');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('cart-health-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('cart-health-status', 'success', 'Cart Service работает!');
+                
+            } catch (error) {
+                showStatus('cart-health-status', 'error', `Ошибка: ${error.message}`);
+                document.getElementById('cart-health-result').textContent = error.toString();
+            }
+        }
+
+        // Тест Health Check Orders Service
+        async function testOrdersHealth() {
+            try {
+                showStatus('orders-health-status', 'info', 'Проверка Orders Service...');
+                
+                const response = await fetch('http://localhost:8002/health');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('orders-health-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('orders-health-status', 'success', 'Orders Service работает!');
+                
+            } catch (error) {
+                showStatus('orders-health-status', 'error', `Ошибка: ${error.message}`);
+                document.getElementById('orders-health-result').textContent = error.toString();
+            }
+        }
+
+        // Тест CORS Cart Calculate
+        async function testCartCalculate() {
+            try {
+                showStatus('cart-calculate-status', 'info', 'Тестирование CORS для расчета корзины...');
+                
+                const response = await fetch('http://localhost:8001/api/v1/cart/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_ids: ['main-book', '1', '2']
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('cart-calculate-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('cart-calculate-status', 'success', 'CORS для Cart Service работает!');
+                
+            } catch (error) {
+                showStatus('cart-calculate-status', 'error', `Ошибка: ${error.message}`);
+                document.getElementById('cart-calculate-result').textContent = error.toString();
+            }
+        }
+
+        // Тест CORS Orders Create
+        async function testOrdersCreate() {
+            try {
+                showStatus('orders-create-status', 'info', 'Тестирование CORS для создания заказа...');
+                
+                const response = await fetch('http://localhost:8002/api/v1/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_ids: ['main-book', '1']
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                document.getElementById('orders-create-result').textContent = JSON.stringify(data, null, 2);
+                showStatus('orders-create-status', 'success', 'CORS для Orders Service работает!');
+                
+            } catch (error) {
+                showStatus('orders-create-status', 'error', `Ошибка: ${error.message}`);
+                document.getElementById('orders-create-result').textContent = error.toString();
+            }
+        }
+
+        // Автоматический тест при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('CORS Test Page загружена');
+            console.log('Убедитесь, что сервисы запущены на портах 8001 и 8002');
+        });
+    </script>
+</body>
+</html>

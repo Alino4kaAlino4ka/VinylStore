@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест изображений</title>
+</head>
+<body>
+    <h1>Тест загрузки изображений</h1>
+    <div>
+        <h2>Placeholder изображение:</h2>
+        <img src="https://via.placeholder.com/600/8A2BE2/FFFFFF?text=Test" 
+             alt="Test" 
+             onerror="this.style.border='3px solid red'; this.alt='ОШИБКА ЗАГРУЗКИ';">
+        <p>Если изображение не загрузилось, появится красная рамка</p>
+    </div>
+    <div>
+        <h2>SVG Placeholder (локальный):</h2>
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600'%3E%3Crect fill='%238A2BE2' width='600' height='600'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='Arial' font-size='24' fill='white'%3EVinyl Record%3C/text%3E%3C/svg%3E" 
+             alt="SVG Placeholder">
+        <p>Это изображение должно работать всегда (даже без интернета)</p>
+    </div>
+    <script>
+        console.log('Тест загрузки изображений');
+        document.querySelectorAll('img').forEach(img => {
+            img.onload = () => console.log('✅ Загружено:', img.src.substring(0, 50));
+            img.onerror = () => console.error('❌ Ошибка:', img.src.substring(0, 50));
+        });
+    </script>
+</body>
+</html>
+
+

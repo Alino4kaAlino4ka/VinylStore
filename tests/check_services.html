@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Проверка сервисов - Аудитерия</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #0F1014;
+            color: #EAEAEA;
+        }
+        .service-check {
+            background-color: #1A1B20;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .success {
+            background-color: #28a745;
+            color: white;
+        }
+        .error {
+            background-color: #dc3545;
+            color: white;
+        }
+        .info {
+            background-color: #17a2b8;
+            color: white;
+        }
+        button {
+            background-color: #FF9900;
+            color: #0F1014;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #e68900;
+        }
+        pre {
+            background-color: #2A2B30;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Проверка работы сервисов</h1>
+    
+    <div class="service-check">
+        <h2>Catalog Service (порт 8000)</h2>
+        <button onclick="checkService('http://localhost:8000/health', 'catalog-status', 'catalog-result')">Проверить</button>
+        <div id="catalog-status" class="status info">Не проверен</div>
+        <pre id="catalog-result"></pre>
+    </div>
+
+    <div class="service-check">
+        <h2>Cart Service (порт 8001)</h2>
+        <button onclick="checkService('http://localhost:8001/health', 'cart-status', 'cart-result')">Проверить</button>
+        <div id="cart-status" class="status info">Не проверен</div>
+        <pre id="cart-result"></pre>
+    </div>
+
+    <div class="service-check">
+        <h2>Orders Service (порт 8002)</h2>
+        <button onclick="checkService('http://localhost:8002/health', 'orders-status', 'orders-result')">Проверить</button>
+        <div id="orders-status" class="status info">Не проверен</div>
+        <pre id="orders-result"></pre>
+    </div>
+
+    <div class="service-check">
+        <h2>Users Service (порт 8003)</h2>
+        <button onclick="checkService('http://localhost:8003/health', 'users-status', 'users-result')">Проверить</button>
+        <div id="users-status" class="status info">Не проверен</div>
+        <pre id="users-result"></pre>
+    </div>
+
+    <div class="service-check">
+        <h2>Проверить все сервисы</h2>
+        <button onclick="checkAllServices()">Проверить все</button>
+        <div id="all-status" class="status info">Нажмите кнопку для проверки всех сервисов</div>
+    </div>
+
+    <div class="service-check">
+        <h2>Тест CORS</h2>
+        <button onclick="testCORS()">Тест CORS</button>
+        <div id="cors-status" class="status info">Нажмите кнопку для тестирования CORS</div>
+        <pre id="cors-result"></pre>
+    </div>
+
+    <script>
+        async function checkService(url, statusId, resultId) {
+            const statusElement = document.getElementById(statusId);
+            const resultElement = document.getElementById(resultId);
+            
+            try {
+                statusElement.textContent = 'Проверка...';
+                statusElement.className = 'status info';
+                
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                resultElement.textContent = JSON.stringify(data, null, 2);
+                statusElement.textContent = '✅ Сервис работает';
+                statusElement.className = 'status success';
+                
+            } catch (error) {
+                resultElement.textContent = error.toString();
+                statusElement.textContent = '❌ Сервис не работает';
+                statusElement.className = 'status error';
+            }
+        }
+
+        async function checkAllServices() {
+            const services = [
+                { url: 'http://localhost:8000/health', name: 'Catalog' },
+                { url: 'http://localhost:8001/health', name: 'Cart' },
+                { url: 'http://localhost:8002/health', name: 'Orders' },
+                { url: 'http://localhost:8003/health', name: 'Users' }
+            ];
+
+            const allStatusElement = document.getElementById('all-status');
+            allStatusElement.textContent = 'Проверка всех сервисов...';
+            allStatusElement.className = 'status info';
+
+            let workingServices = 0;
+            let results = [];
+
+            for (const service of services) {
+                try {
+                    const response = await fetch(service.url);
+                    if (response.ok) {
+                        workingServices++;
+                        results.push(`✅ ${service.name} Service - работает`);
+                    } else {
+                        results.push(`❌ ${service.name} Service - ошибка ${response.status}`);
+                    }
+                } catch (error) {
+                    results.push(`❌ ${service.name} Service - недоступен`);
+                }
+            }
+
+            allStatusElement.innerHTML = results.join('<br>');
+            
+            if (workingServices === services.length) {
+                allStatusElement.className = 'status success';
+            } else if (workingServices > 0) {
+                allStatusElement.className = 'status info';
+            } else {
+                allStatusElement.className = 'status error';
+            }
+        }
+
+        async function testCORS() {
+            const corsStatusElement = document.getElementById('cors-status');
+            const corsResultElement = document.getElementById('cors-result');
+            
+            try {
+                corsStatusElement.textContent = 'Тестирование CORS...';
+                corsStatusElement.className = 'status info';
+                
+                // Тест POST запроса к Cart Service
+                const cartResponse = await fetch('http://localhost:8001/api/v1/cart/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_ids: ['main-book', '1']
+                    })
+                });
+
+                if (!cartResponse.ok) {
+                    throw new Error(`Cart Service CORS error: ${cartResponse.status}`);
+                }
+
+                const cartData = await cartResponse.json();
+
+                // Тест POST запроса к Orders Service
+                const ordersResponse = await fetch('http://localhost:8002/api/v1/orders', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        product_ids: ['main-book']
+                    })
+                });
+
+                if (!ordersResponse.ok) {
+                    throw new Error(`Orders Service CORS error: ${ordersResponse.status}`);
+                }
+
+                const ordersData = await ordersResponse.json();
+
+                corsResultElement.textContent = `Cart Service: ${JSON.stringify(cartData, null, 2)}\n\nOrders Service: ${JSON.stringify(ordersData, null, 2)}`;
+                corsStatusElement.textContent = '✅ CORS работает для всех сервисов';
+                corsStatusElement.className = 'status success';
+                
+            } catch (error) {
+                corsResultElement.textContent = error.toString();
+                corsStatusElement.textContent = '❌ Ошибка CORS';
+                corsStatusElement.className = 'status error';
+            }
+        }
+
+        // Автоматическая проверка при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Страница проверки сервисов загружена');
+            setTimeout(checkAllServices, 1000); // Автоматическая проверка через 1 секунду
+        });
+    </script>
+</body>
+</html>

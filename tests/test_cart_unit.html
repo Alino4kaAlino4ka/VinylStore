@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit тесты корзины</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        
+        .console {
+            background-color: #000000;
+            border: 1px solid #333;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 400px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        .clear-btn {
+            background-color: #dc3545;
+        }
+        
+        .clear-btn:hover {
+            background-color: #c82333;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #007bff;
+        }
+        
+        .info {
+            background-color: #2d3748;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #007bff;
+        }
+        
+        .warning {
+            background-color: #744210;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Unit тесты функционала корзины</h1>
+    
+    <div class="info">
+        <strong>Информация:</strong> Этот файл запускает детальные unit-тесты для всех функций корзины.
+        Результаты отображаются в консоли ниже.
+    </div>
+    
+    <div class="warning">
+        <strong>Важно:</strong> Убедитесь, что файл <code>src/scripts/script.js</code> подключен и содержит функции корзины.
+    </div>
+    
+    <div class="controls">
+        <button onclick="runTests()">🚀 Запустить тесты</button>
+        <button onclick="clearConsole()" class="clear-btn">🗑️ Очистить консоль</button>
+    </div>
+    
+    <div class="console" id="console">
+        <div style="color: #888;">Консоль готова к работе. Нажмите "Запустить тесты" для начала тестирования.</div>
+    </div>
+    
+    <!-- Подключаем основной скрипт с функциями корзины -->
+    <script src="src/scripts/script.js"></script>
+    
+    <!-- Подключаем unit-тесты -->
+    <script src="tests/test_cart_unit.js"></script>
+    
+    <script>
+        // Переопределяем console.log для отображения в нашем консольном элементе
+        const originalConsoleLog = console.log;
+        const consoleElement = document.getElementById('console');
+        
+        console.log = function(...args) {
+            // Вызываем оригинальный console.log
+            originalConsoleLog.apply(console, args);
+            
+            // Добавляем в наш консольный элемент
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const logElement = document.createElement('div');
+            logElement.textContent = message;
+            logElement.style.marginBottom = '5px';
+            
+            // Цветовое кодирование сообщений
+            if (message.includes('✅')) {
+                logElement.style.color = '#28a745';
+            } else if (message.includes('❌')) {
+                logElement.style.color = '#dc3545';
+            } else if (message.includes('📊') || message.includes('📈')) {
+                logElement.style.color = '#007bff';
+            } else if (message.includes('🧪')) {
+                logElement.style.color = '#ffc107';
+            }
+            
+            consoleElement.appendChild(logElement);
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+        };
+        
+        // Переопределяем console.error
+        const originalConsoleError = console.error;
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            const errorElement = document.createElement('div');
+            errorElement.textContent = 'ERROR: ' + message;
+            errorElement.style.color = '#dc3545';
+            errorElement.style.marginBottom = '5px';
+            
+            consoleElement.appendChild(errorElement);
+            consoleElement.scrollTop = consoleElement.scrollHeight;
+        };
+        
+        // Функция для запуска тестов
+        function runTests() {
+            console.log('🚀 Запуск unit-тестов...');
+            console.log('='.repeat(50));
+            
+            // Проверяем, что функции корзины доступны
+            if (typeof getCart !== 'function') {
+                console.error('❌ Функция getCart не найдена! Убедитесь, что script.js подключен.');
+                return;
+            }
+            
+            if (typeof saveCart !== 'function') {
+                console.error('❌ Функция saveCart не найдена! Убедитесь, что script.js подключен.');
+                return;
+            }
+            
+            if (typeof addToCart !== 'function') {
+                console.error('❌ Функция addToCart не найдена! Убедитесь, что script.js подключен.');
+                return;
+            }
+            
+            if (typeof updateCartCount !== 'function') {
+                console.error('❌ Функция updateCartCount не найдена! Убедитесь, что script.js подключен.');
+                return;
+            }
+            
+            console.log('✅ Все функции корзины найдены');
+            console.log('');
+            
+            // Запускаем тесты
+            testSuite.runAllTests().then(results => {
+                console.log('');
+                console.log('🎉 Тестирование завершено!');
+                
+                // Показываем детальные результаты
+                const passedTests = results.filter(r => r.status === 'PASSED');
+                const failedTests = results.filter(r => r.status === 'FAILED');
+                
+                if (failedTests.length > 0) {
+                    console.log('');
+                    console.log('❌ Проваленные тесты:');
+                    failedTests.forEach(test => {
+                        console.log(`  - ${test.name}: ${test.error}`);
+                    });
+                }
+                
+                if (passedTests.length > 0) {
+                    console.log('');
+                    console.log('✅ Пройденные тесты:');
+                    passedTests.forEach(test => {
+                        console.log(`  - ${test.name}`);
+                    });
+                }
+            }).catch(error => {
+                console.error('❌ Ошибка при запуске тестов:', error);
+            });
+        }
+        
+        // Функция для очистки консоли
+        function clearConsole() {
+            consoleElement.innerHTML = '<div style="color: #888;">Консоль очищена.</div>';
+        }
+        
+        // Автоматическая проверка готовности при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📋 Проверка готовности к тестированию...');
+            
+            const requiredFunctions = ['getCart', 'saveCart', 'addToCart', 'updateCartCount'];
+            const missingFunctions = requiredFunctions.filter(func => typeof window[func] !== 'function');
+            
+            if (missingFunctions.length === 0) {
+                console.log('✅ Все необходимые функции найдены. Готов к тестированию!');
+            } else {
+                console.log('❌ Отсутствуют функции:', missingFunctions.join(', '));
+                console.log('Убедитесь, что файл src/scripts/script.js подключен корректно.');
+            }
+        });
+    </script>
+</body>
+</html>
